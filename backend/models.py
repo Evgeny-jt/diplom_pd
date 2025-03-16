@@ -10,13 +10,13 @@ from django.contrib.auth.models import User
 
 
 class Shop(models.Model):
-    id = models.AutoField(primary_key=True)
+    # id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, verbose_name='Магазин')
     url = models.URLField(blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Магазин'
-        verbose_name_plural = 'Магазины'
+        verbose_name = 'Магазин1'
+        verbose_name_plural = 'Магазины2'
 
     def __str__(self):
         return self.name

@@ -4,8 +4,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from orders.serializers import ShopSerializer
-from .models import Shop
+from orders.serializers import ShopSerializer, CategorySerializer
+from .models import Shop, Category
 
 
 # @api_view(['GET'])
@@ -30,6 +30,13 @@ from .models import Shop
 class OrderView(ListAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
+
+    def post(self, request):
+        return Response({'status': 'ok'})
+
+class CategoryView(ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
     def post(self, request):
         return Response({'status': 'ok'})
