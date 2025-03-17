@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from backend.models import Shop, Category, Product, ProductInfo, ProductParametr, Order, OrderItem, Contact
+from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
 
 
 class ShopSerializer(serializers.ModelSerializer):
@@ -23,15 +23,15 @@ class ProductInfoSerializer(serializers.ModelSerializer):
         model = ProductInfo
         fields = ['id', 'product', 'shop', 'name', 'quantity', 'price', 'price_rrc']
 
-class ParametrSerializer(serializers.ModelSerializer):
+class ParameterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductInfo
+        model = Parameter
         fields = ['id', 'name']
 
-class ProductParametrSerializer(serializers.ModelSerializer):
+class ProductParameterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductParametr
-        fields = ['id', 'product_info', 'parametr', 'value']
+        model = ProductParameter
+        fields = ['id', 'product_info', 'parameter', 'value']
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:

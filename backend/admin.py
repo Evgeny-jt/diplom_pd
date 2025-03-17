@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Shop, Category, Product, ProductInfo, Parametr,ProductParametr, Order, OrderItem, Contact
+from .models import Shop, Category, Product, ProductInfo, Parameter,ProductParameter, Order, OrderItem, Contact
 
 @admin.register(Shop)
 class ShopAdmin(admin.ModelAdmin):
@@ -9,8 +9,9 @@ class ShopAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'shop', 'name']
-    list_filter = ['id', 'shop', 'name']
+    # list_display = ['id', 'shop', 'name']
+    # list_filter = ['id', 'shop', 'name']
+    pass
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -22,15 +23,15 @@ class ProductInfoAdmin(admin.ModelAdmin):
     list_display = ['id', 'product', 'shop', 'name', 'quantity', 'price', 'price_rrc']
     list_filter = ['id', 'product', 'shop', 'name', 'quantity', 'price', 'price_rrc']
 
-@admin.register(Parametr)
+@admin.register(Parameter)
 class ParametrAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
     list_filter = ['id', 'name']
 
-@admin.register(ProductParametr)
+@admin.register(ProductParameter)
 class ProductParametrAdmin(admin.ModelAdmin):
-    list_display = ['id', 'product_info', 'parametr', 'value']
-    list_filter = ['id', 'product_info', 'parametr', 'value']
+    list_display = ['id', 'product_info', 'parameter', 'value']
+    list_filter = ['id', 'product_info', 'parameter', 'value']
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):

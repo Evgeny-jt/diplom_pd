@@ -23,32 +23,38 @@ class Shop(models.Model):
 
 
 class Category(models.Model):
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    shop = models.ManyToManyField(Shop, related_name='categories', blank=True)
     name = models.CharField(max_length=100, verbose_name='Категория')
+    # external_id = models.PositiveIntegerField(verbose_name='Внешний ИД', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+        ordering = ('-name',)
 
     def __str__(self):
         return self.name
 
 
 class Product(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    objects = models.manager.Manager()
+    category = models.ForeignKey(Category, verbose_name='Категория', related_name='products', blank=True, null=True,
+                                 on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name='Продукт')
 
     class Meta:
-        verbose_name = 'Продукт'
-        verbose_name_plural = 'Продукты'
+        verbose_name = 'Товар'
+        verbose_name_plural = 'Товарыы'
 
     def __str__(self):
         return self.name
 
 
 class ProductInfo(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, verbose_name='Товар', related_name='product_infos', blank=True,
+                                on_delete=models.CASCADE)
+    shop = models.ForeignKey(Shop, verbose_name='Магазин', related_name='product_infos', blank=True,
+                             on_delete=models.CASCADE)
     name = models.CharField(max_length=100, verbose_name='Информация')
     quantity = models.PositiveIntegerField()
     price = models.IntegerField()
@@ -62,28 +68,31 @@ class ProductInfo(models.Model):
         return self.name
 
 
-class Parametr(models.Model):
-    name = models.CharField(max_length=100, verbose_name='Параметр')
+class Parameter(models.Model):
+    name = models.CharField(max_length=100, verbose_name='Параметер')
 
     class Meta:
-        verbose_name = 'Параметр'
+        verbose_name = 'Параметер'
         verbose_name_plural = 'Параметры'
 
     def __str__(self):
         return self.name
 
 
-class ProductParametr(models.Model):
-    product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
-    parametr = models.ForeignKey(Parametr, on_delete=models.CASCADE, verbose_name='Параметр продукта')
+class ProductParameter(models.Model):
+    product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о продукте',
+                                     related_name='product_parameters', blank=True,
+                                     on_delete=models.CASCADE)
+    parameter = models.ForeignKey(Parameter, verbose_name='Параметр', related_name='product_parameters', blank=True,
+                                  on_delete=models.CASCADE)
     value = models.CharField(max_length=100)
 
     class Meta:
         verbose_name = 'Параметры подукта'
-        verbose_name_plural = 'Параметр'
+        verbose_name_plural = 'Параметр продукта'
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class Order(models.Model):
