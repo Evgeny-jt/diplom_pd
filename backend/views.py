@@ -17,9 +17,13 @@ class UserRegistration(ListAPIView):
 
     def post (self, request):
         print('имя пользователя: ', request.data['username'], 'пароль: ', request.data['password'])
-        User.objects.get_or_create(username=request.data['username'], password=request.data['password'])
-
-        # user = request.data['username'].save()
+        User.objects.get_or_create(username=request.data['username'],
+                                   password=request.data['password'],
+                                   first_name=request.data['first_name'],
+                                   last_name=request.data['last_name'],
+                                   email=request.data['email'],
+                                   )
+        # # user = request.data['username'].save()
         # user.set_password(request.data['password'])
         # user.save()
         return Response({'status UserRegistration': 'ok'})
