@@ -7,28 +7,22 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo
-from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
+from orders.serializers import UserSerializer, ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo
+from .models import User,Shop, Category, Product, ProductInfo, Parameter, ProductParameter
 
 
-# @api_view(['GET'])
-# def test(request):
-#     print('запрос в базу')
-#     shop = Shop.objects.all()
-#     ser = ShopSerializer(shop, many=True)
-#     print('shop - ', shop)
-#     data = {'jt': 'jt_test1'}
-#     return Response(ser.data)
+class UserRegistration(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
+    def post (self, request):
+        print('имя пользователя: ', request.data['username'], 'пароль: ', request.data['password'])
+        User.objects.get_or_create(username=request.data['username'], password=request.data['password'])
 
-# class OrderView(APIView):
-#     def get(self, request):
-#         shop = Shop.objects.all()
-#         ser = ShopSerializer(shop, many=True)
-#         return Response(ser.data)
-#
-#     def post(self, request):
-#         return Response({'status': 'ok'})
+        # user = request.data['username'].save()
+        # user.set_password(request.data['password'])
+        # user.save()
+        return Response({'status UserRegistration': 'ok'})
 
 class ShopView(ListAPIView):
     queryset = Shop.objects.all()
@@ -58,7 +52,7 @@ class UpPriseView(ListAPIView):
 
     def post(self, request):
         # wu = Shop.objects.get(id=6)
-        wu = Shop.objects.all().filter(id=40) # id магазина который хотим рбновить
+        wu = Shop.objects.all().filter(id=2) # id магазина который хотим рбновить
 
         print('---', wu[0].url)
 

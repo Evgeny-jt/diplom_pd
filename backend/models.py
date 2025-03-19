@@ -1,16 +1,26 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
+USER_TYPE = (
+    ('buyer', 'Покупатель'),
+    ('shop', 'Магазин'),
+)
 
+class User(AbstractUser):
+    type = models.CharField(max_length=30, verbose_name='Тип пользователя', choices=USER_TYPE, null=False, blank=False)
+    surname = models.CharField(max_length=60, verbose_name='Отчество', blank=True)
+    company = models.CharField(max_length=60, verbose_name='Компания', blank=True)
+    position = models.CharField(max_length=100, verbose_name='Должность', blank=True)
 
-# class User(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     name = models.CharField(max_length=25)
-#     email = models.EmailField(unique=True)
+    class Meta:
+        verbose_name = 'Имя'
+        verbose_name_plural = 'Имя'
+
+    def __str__(self):
+        return self.username
 
 
 class Shop(models.Model):
-    # id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, verbose_name='Магазин')
     url = models.URLField(blank=True, null=True)
 
