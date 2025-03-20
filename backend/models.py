@@ -70,6 +70,8 @@ class ProductInfo(models.Model):
         return self.name
 
 
+
+
 class Parameter(models.Model):
     name = models.CharField(max_length=100, verbose_name='Параметер')
 
@@ -135,3 +137,15 @@ class Contact(models.Model):
 
     def __str__(self):
         return self.name
+
+# class ListProduct(models.Model):
+#     category = models.ForeignKey(Category, verbose_name='Категория', related_name='list_category', blank=True, null=True,
+#                                  on_delete=models.CASCADE)
+#     product = models.ForeignKey(Product, verbose_name='Товар', related_name='list_product', blank=True,
+#                                 on_delete=models.CASCADE)
+#     shop = models.ForeignKey(Shop, verbose_name='Магазин', related_name='list_shop', blank=True,
+#                              on_delete=models.CASCADE)
+#     price = models.ForeignKey(ProductInfo, related_name='list_prise', blank=True,
+#                              on_delete=models.CASCADE)
+#     quantity = models.PositiveIntegerField(ProductInfo, related_name='list_quantity', blank=True,
+#                              on_delete=models.CASCADE)

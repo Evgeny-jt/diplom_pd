@@ -37,17 +37,34 @@ class LoginView(ListAPIView):
 #     serializer_class = LoginSerializer
 
     def post(self, request):
-        print('email: ', request.data['email'], 'пароль: ', request.data['password'])
         # t =get_token_generator().generate_token()
         name = User.objects.all().filter(email='dylan_jt@mail.ru')
         user = User.objects.get(username=name[0].username)
         token = Token.objects.create(user=user)
-
-        print('---token: ', token)
-
-
         return Response({'Вход в выполнен.': f' TOKEN: {token}'})
 
+class ProductFilterView(ListAPIView):
+    """
+    Класс для просмотра категорий
+    """
+    def get(self, request):
+        sf = ''
+        par = Product.objects.all()
+        for product in par:
+            product_info = product.product_infos.all()
+            for info in product_info:
+                product_parameters = info.product_parameters.all()
+                parametrs_str = ''
+                for pp in product_parameters:
+                    parametrs = f'"parametrs": "{pp.parameter.name}", "value": "{pp.parameter.name}",'
+                    parametrs_str += parametrs
+                s = f'"id": "{product.id}", "category:" "{product.category}", "product": "{product.name}", "shop": "{info.shop}", {parametrs_str}, "price": "{info.price}", "": "{info.quantity}'
+                print("-------------------------------")
+            sf += s
+        print(sf)
+
+
+        return Response({sf})
 
 
 
