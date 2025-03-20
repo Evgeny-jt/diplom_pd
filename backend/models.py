@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, User
 
 USER_TYPE = (
     ('buyer', 'Покупатель'),
@@ -7,18 +7,10 @@ USER_TYPE = (
 )
 
 class User(AbstractUser):
-    type = models.CharField(max_length=30, verbose_name='Тип пользователя', choices=USER_TYPE, null=False, blank=False)
-    surname = models.CharField(max_length=60, verbose_name='Отчество', blank=True)
-    company = models.CharField(max_length=60, verbose_name='Компания', blank=True)
-    position = models.CharField(max_length=100, verbose_name='Должность', blank=True)
-
-    class Meta:
-        verbose_name = 'Имя'
-        verbose_name_plural = 'Имя'
+    pass
 
     def __str__(self):
         return self.username
-
 
 class Shop(models.Model):
     name = models.CharField(max_length=100, verbose_name='Магазин')

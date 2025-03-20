@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
-from backend.models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
+from backend.models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, \
+    Contact #Login
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email']
+
 
 class ShopSerializer(serializers.ModelSerializer):
     class Meta:

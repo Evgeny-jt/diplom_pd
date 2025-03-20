@@ -1,3 +1,5 @@
+from multiprocessing.managers import Token
+
 from requests import get
 from yaml import load as load_yaml, Loader
 
@@ -6,17 +8,18 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django_rest_passwordreset.tokens import get_token_generator
 
-from orders.serializers import UserSerializer, ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo
-from .models import User,Shop, Category, Product, ProductInfo, Parameter, ProductParameter
+from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo, UserSerializer# LoginSerializer
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter #Login
+from rest_framework.authtoken.models import Token
+# from django.contrib.auth.models import User
 
-
-class UserRegistration(ListAPIView):
+class UserRegistration(ListAPIView): # регистрация пользователя
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def post (self, request):
-        print('имя пользователя: ', request.data['username'], 'пароль: ', request.data['password'])
         User.objects.get_or_create(username=request.data['username'],
                                    password=request.data['password'],
                                    first_name=request.data['first_name'],
@@ -27,6 +30,26 @@ class UserRegistration(ListAPIView):
         # user.set_password(request.data['password'])
         # user.save()
         return Response({'status UserRegistration': 'ok'})
+
+
+class LoginView(ListAPIView):
+#     queryset = Login.objects.all()
+#     serializer_class = LoginSerializer
+
+    def post(self, request):
+        print('email: ', request.data['email'], 'пароль: ', request.data['password'])
+        # t =get_token_generator().generate_token()
+        name = User.objects.all().filter(email='dylan_jt@mail.ru')
+        user = User.objects.get(username=name[0].username)
+        token = Token.objects.create(user=user)
+
+        print('---token: ', token)
+
+
+        return Response({'Вход в выполнен.': f' TOKEN: {token}'})
+
+
+
 
 class ShopView(ListAPIView):
     queryset = Shop.objects.all()
@@ -56,7 +79,7 @@ class UpPriseView(ListAPIView):
 
     def post(self, request):
         # wu = Shop.objects.get(id=6)
-        wu = Shop.objects.all().filter(id=2) # id магазина который хотим рбновить
+        wu = Shop.objects.all().filter(id=1) # id магазина который хотим рбновить
 
         print('---', wu[0].url)
 

@@ -78,22 +78,22 @@ WSGI_APPLICATION = 'orders.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'diplom',
-#         'HOST': '127.0.0.1',
-#         'PORT': '5432',
-#         'USER': 'postgres',
-#         'PASSWORD': '2025p',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'diplom',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+        'USER': 'postgres',
+        'PASSWORD': '2025p',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -143,4 +143,4 @@ REST_FRAMEWORK = {
     ]
 }
 
-AUTH_USER_MODEL = 'backend.User'
+AUTH_USER_MODEL = 'backend.User' 
