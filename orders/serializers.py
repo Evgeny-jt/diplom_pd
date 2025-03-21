@@ -48,7 +48,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'product', 'shop', 'quantity']
+        fields = ['id', 'order', 'product_info', 'shop', 'quantity']
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:

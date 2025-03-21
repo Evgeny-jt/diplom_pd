@@ -11,8 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_rest_passwordreset.tokens import get_token_generator
 
-from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo, UserSerializer# LoginSerializer
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter #Login
+from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo, UserSerializer, OrderItemSerializer
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, OrderItem  # Login
 from rest_framework.authtoken.models import Token
 # from django.contrib.auth.models import User
 
@@ -55,7 +55,29 @@ class ProductFilterView(ListAPIView):
 
         return Response({'ok': f'{a}'})
 
+class BasketView(ListAPIView):
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemSerializer
+    filterset_fields = ['id']
 
+    def post(self, request):
+        order =  request.data.get('order_items')
+        print('---', order[0])
+        print('-product_info-', order[0]['product_info'])
+        print('-shop-', order[0]['shop'])
+        print('-quantity-', order[0]['quantity'])
+
+        # OrderItem.objects.get_or_create(
+        #     # product_info=order[0]['product_info'],
+        #     # shop=order[0]['shop'],
+        #     quantity = order[0]['quantity']
+        # )
+        order_item, _ = OrderItem.objects.get_or_create(
+            quantity=order[0]['quantity'],
+            product_info_id=order[0]['product_info'],
+            shop_id=order[0]['shop']
+        )
+        return Response({'status': 'ok'})
 
 
 

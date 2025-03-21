@@ -113,17 +113,14 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Пункт заказа')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Ордер', related_name='order_item', blank=True, null=True)
+    product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE,  verbose_name='Информация товара', related_name='order_item', blank=True, null=True)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, blank=True, null=True,)
     quantity = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = 'Пункт заказа'
         verbose_name_plural = 'Пункт заказа'
-
-    def __str__(self):
-        return self.name
 
 
 class Contact(models.Model):
@@ -138,14 +135,3 @@ class Contact(models.Model):
     def __str__(self):
         return self.name
 
-# class ListProduct(models.Model):
-#     category = models.ForeignKey(Category, verbose_name='Категория', related_name='list_category', blank=True, null=True,
-#                                  on_delete=models.CASCADE)
-#     product = models.ForeignKey(Product, verbose_name='Товар', related_name='list_product', blank=True,
-#                                 on_delete=models.CASCADE)
-#     shop = models.ForeignKey(Shop, verbose_name='Магазин', related_name='list_shop', blank=True,
-#                              on_delete=models.CASCADE)
-#     price = models.ForeignKey(ProductInfo, related_name='list_prise', blank=True,
-#                              on_delete=models.CASCADE)
-#     quantity = models.PositiveIntegerField(ProductInfo, related_name='list_quantity', blank=True,
-#                              on_delete=models.CASCADE)
