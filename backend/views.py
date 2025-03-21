@@ -1,4 +1,5 @@
 from multiprocessing.managers import Token
+from unicodedata import category
 
 from requests import get
 from yaml import load as load_yaml, Loader
@@ -48,23 +49,14 @@ class ProductFilterView(ListAPIView):
     Класс для просмотра категорий
     """
     def get(self, request):
-        sf = ''
-        par = Product.objects.all()
-        for product in par:
-            product_info = product.product_infos.all()
-            for info in product_info:
-                product_parameters = info.product_parameters.all()
-                parametrs_str = ''
-                for pp in product_parameters:
-                    parametrs = f'"parametrs": "{pp.parameter.name}", "value": "{pp.parameter.name}",'
-                    parametrs_str += parametrs
-                s = f'"id": "{product.id}", "category:" "{product.category}", "product": "{product.name}", "shop": "{info.shop}", {parametrs_str}, "price": "{info.price}", "": "{info.quantity}'
-                print("-------------------------------")
-            sf += s
-        print(sf)
+        a = ProductInfo.objects.all().select_related('product').filter(name='Samsung QLED Q90R 65" 4K UHD Smart TV')
+        for i in a:
+            print(i.id,  i.product.category,   i.product.name,    i.shop,   i.price,   i.quantity)
+
+        return Response({'ok': f'{a}'})
 
 
-        return Response({sf})
+
 
 
 
