@@ -11,10 +11,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_rest_passwordreset.tokens import get_token_generator
 
-from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo, UserSerializer, OrderItemSerializer
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, OrderItem  # Login
+from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo, UserSerializer, OrderSerializer, OrderItemSerializer, ContactSerializer
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
 from rest_framework.authtoken.models import Token
-# from django.contrib.auth.models import User
 
 class UserRegistration(ListAPIView): # регистрация пользователя
     queryset = User.objects.all()
@@ -27,9 +26,6 @@ class UserRegistration(ListAPIView): # регистрация пользоват
                                    last_name=request.data['last_name'],
                                    email=request.data['email'],
                                    )
-        # # user = request.data['username'].save()
-        # user.set_password(request.data['password'])
-        # user.save()
         return Response({'status UserRegistration': 'ok'})
 
 
@@ -60,24 +56,72 @@ class BasketView(ListAPIView):
     serializer_class = OrderItemSerializer
     filterset_fields = ['id']
 
-    def post(self, request):
-        order =  request.data.get('order_items')
-        print('---', order[0])
-        print('-product_info-', order[0]['product_info'])
-        print('-shop-', order[0]['shop'])
-        print('-quantity-', order[0]['quantity'])
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-        # OrderItem.objects.get_or_create(
-        #     # product_info=order[0]['product_info'],
-        #     # shop=order[0]['shop'],
-        #     quantity = order[0]['quantity']
-        # )
-        order_item, _ = OrderItem.objects.get_or_create(
-            quantity=order[0]['quantity'],
-            product_info_id=order[0]['product_info'],
-            shop_id=order[0]['shop']
+    def post(self, request):
+        order, _ = Order.objects.get_or_create(user_id=self.request.user.id, status='В корзине')
+        for order_item in request.data['add_products']:
+            order_it, _ = OrderItem.objects.get_or_create(order_id=order.id,
+                                                          product_info_id=order_item['product_info'],
+                                                          shop_id=order_item['shop'],
+                                                          quantity=order_item['quantity']
+                                                          )
+        return Response({'status': 'ok'})
+    
+    def put(self, request):
+        update_item_id = request.data['id']
+        OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
+        return Response({'status': 'ok'})
+
+    
+
+    def delete(self, request):
+        delete_order_id = request.GET.get('id')
+        OrderItem.objects.filter(id=delete_order_id).delete()
+        return Response({'status': 'ok'})
+
+class OrderView(ListAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    filterset_fields = ['id']
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def delete(self, request):
+        delete_order_id = request.GET.get('id')
+        Order.objects.filter(id=delete_order_id).delete()
+        return Response({'status': 'ok'})
+
+
+class ContactView(ListAPIView):
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
+
+    def post(self, request):
+        print(request.data)
+        order_it, _ = Contact.objects.get_or_create(user=self.request.user,
+                                                    city=request.data['add_contact']['city'],
+                                                    street=request.data['add_contact']['street'],
+                                                    house=request.data['add_contact']['house'],
+                                                    structure=request.data['add_contact']['structure'],
+                                                    building=request.data['add_contact']['building'],
+                                                    apartment=request.data['add_contact']['apartment'],
+                                                    phone=request.data['add_contact']['phone']
+
         )
         return Response({'status': 'ok'})
+
+
+
+
+
+
+
+
+
+
 
 
 
