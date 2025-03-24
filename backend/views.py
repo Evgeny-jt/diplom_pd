@@ -1,19 +1,30 @@
 from multiprocessing.managers import Token
 from unicodedata import category
 
+from django.http import JsonResponse
 from requests import get
 from yaml import load as load_yaml, Loader
 
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_rest_passwordreset.tokens import get_token_generator
 
+
 from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, ProductInfo, UserSerializer, OrderSerializer, OrderItemSerializer, ContactSerializer
 from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.authentication import TokenAuthentication
+
+from backend.permissions import IsOwner
+
 
 class UserRegistration(ListAPIView): # регистрация пользователя
     queryset = User.objects.all()
@@ -51,13 +62,22 @@ class ProductFilterView(ListAPIView):
 
         return Response({'ok': f'{a}'})
 
+
 class BasketView(ListAPIView):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     filterset_fields = ['id']
+    print('-1--')
+    # permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated, IsOwner]
+    print('-2-')
+
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get(self, request):
+        return Response({'status': 'ok'})
 
     def post(self, request):
         order, _ = Order.objects.get_or_create(user_id=self.request.user.id, status='В корзине')
@@ -70,16 +90,40 @@ class BasketView(ListAPIView):
         return Response({'status': 'ok'})
     
     def put(self, request):
-        update_item_id = request.data['id']
-        OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
-        return Response({'status': 'ok'})
+        try:
+            Order.objects.get(user=self.request.user).user
+        except:
+            return Response({'отказ': 'у вас ещё нет ни одного оформленного товара'})
+        else:
+            try:
+                OrderItem.objects.get(id=request.data['id'])
+            except:
+                print('пусто')
+                return Response({'отказ': 'у вас нет такого товара'})
+            else:
+                update_item_id = request.data['id']
+                OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
+                return Response({'status': 'ok'})
 
-    
+
 
     def delete(self, request):
         delete_order_id = request.GET.get('id')
-        OrderItem.objects.filter(id=delete_order_id).delete()
-        return Response({'status': 'ok'})
+        try:
+            Order.objects.get(user=self.request.user).user
+        except:
+            return Response({'отказ': 'у вас ещё нет ни одного оформленного товара'})
+        else:
+            try:
+                OrderItem.objects.get(id=delete_order_id)
+            except:
+                print('пусто')
+                return Response({'отказ': 'у вас нет такого товара'})
+            else:
+                delete_order_id = request.GET.get('id')
+                OrderItem.objects.filter(id=delete_order_id).delete()
+                return Response({'status': 'заказ удалён'})
+
 
 class OrderView(ListAPIView):
     queryset = Order.objects.all()
@@ -91,8 +135,19 @@ class OrderView(ListAPIView):
 
     def delete(self, request):
         delete_order_id = request.GET.get('id')
-        Order.objects.filter(id=delete_order_id).delete()
-        return Response({'status': 'ok'})
+        try:
+            Order.objects.get(user=self.request.user).user
+        except:
+            return Response({'отказ': 'у вас нет оформленного заказа'})
+        else:
+            try:
+                Order.objects.get(id=delete_order_id)
+            except:
+                print('пусто')
+                return Response({'отказ': 'у вас нет такого заказа'})
+            else:
+                Order.objects.filter(id=delete_order_id).delete()
+                return Response({'status': 'заказ удалён'})
 
 
 class ContactView(ListAPIView):
@@ -154,7 +209,7 @@ class UpPriseView(ListAPIView):
 
     def post(self, request):
         # wu = Shop.objects.get(id=6)
-        wu = Shop.objects.all().filter(id=1) # id магазина который хотим рбновить
+        wu = Shop.objects.all().filter(id=7) # id магазина который хотим рбновить
 
         print('---', wu[0].url)
 
@@ -195,26 +250,6 @@ class UpPriseView(ListAPIView):
                                                 parameter_id=parameter_object.id,
                                                 value=value)
 
-
-
-
-            # Product.objects.get_or_create(name=i['name'], category_id=i['category'])
-
-
-            # category_object, _ = Category.objects.get_or_create(name=i['name'])
-            # category_object.shop.add(queryset[0].id)
-            # category_object.save()
-
-
-
-        # n = 1
-        # for i in data:
-        #     print('-', n, '---', i)
-        #     n += 1
-        #
-        #     - 1 - -- shop
-        #     - 2 - --
-        #     - 3 - --
-
-        # Shop.objects.create(name=request.data['name'], url=request.data['url'])
         return Response({'status': 'ok'})
+
+

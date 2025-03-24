@@ -49,8 +49,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ['id', 'order', 'product_info', 'shop', 'quantity']
-        read_only_fields = ['user']
-
+        read_only_fields = ['user',]
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:

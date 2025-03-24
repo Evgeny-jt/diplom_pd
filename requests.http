@@ -1,0 +1,148 @@
+### получить список магазинов
+get http://localhost:8000/shop/
+
+
+### создать магазин
+post http://localhost:8000/shop/
+Content-Type: application/json
+
+{
+  "name": "Test",
+  "url": "https://raw.githubusercontent.com/netology-code/python-final-diplom/master/data/shop1.yaml"
+}
+
+### получить список категории
+get http://localhost:8000/category/
+
+
+### получить список товаров
+get http://localhost:8000/product/
+
+
+### обновление магазина
+post http://localhost:8000/up/
+Content-Type: application/json
+
+{
+  "name": "Пятёрочка",
+  "url": "www.piatorochka.ru"
+}
+
+
+### получить список пользователей
+get http://localhost:8000/user/
+
+
+### регистрация пользователя
+post http://localhost:8000/user/register/
+Content-Type: application/json
+
+{
+  "username": "jt",
+  "password": "user",
+  "first_name": "E",
+  "last_name": "T",
+  "email": "dylan_jt@mail.ru"
+}
+
+
+### вход пользователя в акаунт
+post http://localhost:8000/user/login/
+Content-Type: application/json
+
+{
+  "email": "delan_jt@mail.ru",
+  "password": "user"
+}
+
+
+### Запрос списка товаров с возможностью фильтрации и поиска
+get http://localhost:8000/product/filter/
+
+
+### ЗАКАЗ - добавить товар
+post http://localhost:8000/orderitem/
+Authorization: Token 2cbf59dd490c72d329cc66071282a10bddf38b40
+Content-Type: application/json
+
+{"order_items":
+    [
+        {
+            "product_info": 10,
+            "shop": 2,
+            "quantity": 1
+        }
+    ]
+}
+
+### ЗАКАЗ - добавить товары
+post http://localhost:8000/orderitem/
+Authorization: Token 2cbf59dd490c72d329cc66071282a10bddf38b40
+Content-Type: application/json
+
+{"add_products":
+    [
+        {
+            "product_info": 1,
+            "shop": 2,
+            "quantity": 5
+        },
+        {
+            "product_info": 14,
+            "shop": 2,
+            "quantity": 3
+        }
+    ]
+}
+
+
+### ЗАКАЗ - информацию о заказе
+get http://localhost:8000/order/
+
+### ТОВАР - показать все товары в заказе
+get http://localhost:8000/orderitem/
+
+
+### ИНФОРМАЦИЯ О ТОВАРЕ - показать товар в заказе по его id
+get http://localhost:8000/orderitem/?id=2
+
+
+### ТОВАР - изменить количество товара по его id
+put http://localhost:8000/orderitem/
+Authorization: Token 2cbf59dd490c72d329cc66071282a10bddf38b40
+Content-Type: application/json
+
+{
+    "id": 18,
+    "quantity": 4321
+}
+
+
+### ТОВАР - удалить товар из заказа по id
+delete http://127.0.0.1:8000/orderitem/?id=1
+Authorization: Token 2cbf59dd490c72d329cc66071282a10bddf38b40
+
+
+### ЗАКАЗ - удалить заказ по id
+delete http://127.0.0.1:8000/order/?id=42
+Authorization: Token 2cbf59dd490c72d329cc66071282a10bddf38b40
+
+
+### КОНТАКТ - добавить контакт
+post http://localhost:8000/contact/
+Authorization: Token 2cbf59dd490c72d329cc66071282a10bddf38b40
+Content-Type: application/json
+
+{"add_contact":
+        {
+            "city": "Москва",
+            "street": "Мира",
+            "house": "111",
+            "structure": "А",
+            "building": "Аа",
+            "apartment": "7",
+            "phone": "+79275554477"
+        }
+}
+
+

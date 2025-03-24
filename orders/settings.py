@@ -56,6 +56,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'orders.urls'
+# ROOT_URLCONF = 'auth.urls'
 
 TEMPLATES = [
     {
@@ -74,7 +75,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'orders.wsgi.application'
-
+# WSGI_APPLICATION = 'auth.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -86,14 +87,14 @@ WSGI_APPLICATION = 'orders.wsgi.application'
 #     }
 # }
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.postgresql',
-       'NAME': 'diplom',
-       'HOST': '127.0.0.1',
-       'PORT': '5432',
-       'USER': 'postgres',
-       'PASSWORD': '2025p',
-   }
+  'default': {
+      'ENGINE': 'django.db.backends.postgresql',
+      'NAME': 'diplom',
+      'HOST': '127.0.0.1',
+      'PORT': '5432',
+      'USER': 'postgres',
+      'PASSWORD': '2025p',
+  }
 }
 
 # Password validation
@@ -140,11 +141,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
-    ]
+    ],
 }
 
-AUTH_USER_MODEL = 'backend.User' 
+AUTH_USER_MODEL = 'backend.User'

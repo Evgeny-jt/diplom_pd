@@ -16,7 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from backend.views import UserRegistration, ShopView, CategoryView, UpPriseView, ProductView, ProductFilterView, LoginView, BasketView, OrderView, ContactView
+from rest_framework.routers import DefaultRouter
+
+from backend.views import UserRegistration, ShopView, CategoryView, UpPriseView, ProductView, ProductFilterView, LoginView, OrderView, ContactView, BasketView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +28,7 @@ urlpatterns = [
     path('user/login/', LoginView.as_view()),
     path('product/filter/', ProductFilterView.as_view()),
     path('orderitem/', BasketView.as_view()),
+
     path('order/', OrderView.as_view()),
     path('contact/', ContactView.as_view()),
 
