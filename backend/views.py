@@ -94,36 +94,46 @@ class BasketView(ListAPIView):
     
     def put(self, request):
         try:
-            print('---')
-            Order.objects.get(buyer=self.request.user.id)#.user
+            Order.objects.filter(order_item=request.data['id']).get().id
         except:
-            return Response({'отказ': 'у вас ещё нет ни одного оформленного товара'})
+            return Response({'У вас нет такого товара в корзине'})
         else:
             try:
-                OrderItem.objects.get(id=request.data['id'])
+                Order.objects.filter(buyer=self.request.user.id).filter(order_item=request.data['id']).get()
             except:
-                return Response({'отказ': 'у вас нет такого товара'})
+                return Response({'отказ': 'Сначало добавте товар в корзину'})
             else:
+                if Order.objects.filter(order_item=request.data['id']).get().status != 'В корзине':
+                    return Response({'отказ': 'Заказ уже оплачен и перемещен из корзины'})
+                # try:
+                #     OrderItem.objects.get(id=request.data['id'])
+                # except:
+                #     return Response({'отказ': 'у вас нет такого товара'})
+                # else:
                 update_item_id = request.data['id']
                 OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
                 return Response({'status': 'Количество товара изменено'})
+        return Response({'status': 'НАСТРОЙКА'})
+
 
     def delete(self, request):
-        delete_order_id = request.GET.get('id')
+        delete_order_item_id = request.GET.get('id')
         try:
-            Order.objects.get(buyer=self.request.user.id)#.user
+            delete_order_id = Order.objects.filter(order_item=delete_order_item_id).get().id
         except:
-            return Response({'отказ': 'у вас ещё нет ни одного оформленного товара'})
+            return Response({'отказ': 'У вас нет такого товара в корзине'})
         else:
             try:
-                OrderItem.objects.get(id=delete_order_id)
+                Order.objects.filter(buyer=self.request.user.id).filter(id=delete_order_id).get()
             except:
-                print('пусто')
-                return Response({'отказ': 'у вас нет такого товара'})
+                return Response({'отказ': 'Сначало добавте товар в корзину'})
             else:
-                delete_order_id = request.GET.get('id')
-                OrderItem.objects.filter(id=delete_order_id).delete()
-                return Response({'status': 'заказ удалён'})
+                if Order.objects.filter(id=delete_order_id).get().status != 'В корзине':
+                    return Response({'отказ': 'Заказ уже оплачен и перемещен из корзины'})
+                OrderItem.objects.filter(id=delete_order_item_id).delete()
+                return Response({'status': 'Товар удалён из корзины'})
+
+
 
 
 class OrderView(ListAPIView):
@@ -136,19 +146,24 @@ class OrderView(ListAPIView):
 
     def delete(self, request):
         delete_order_id = request.GET.get('id')
+        print(delete_order_id)
+
         try:
-            Order.objects.get(buyer=self.request.user.id)#.user
+            delete_order_id = Order.objects.filter(id=delete_order_id).get().id
+            print(delete_order_id)
         except:
-            return Response({'отказ': 'у вас нет оформленного заказа'})
+            return Response({'отказ': 'У вас нет такого заказа'})
         else:
             try:
-                Order.objects.get(id=delete_order_id)
+                Order.objects.filter(buyer=self.request.user.id).filter(id=delete_order_id).get()
             except:
-                print('пусто')
-                return Response({'отказ': 'у вас нет такого заказа'})
+                return Response({'отказ': 'у вас нет оформленного заказа'})
             else:
+                if Order.objects.filter(id=delete_order_id).get().status != 'В корзине':
+                    return Response({'отказ': 'Заказ уже оплачен и перемещен из корзины'})
                 Order.objects.filter(id=delete_order_id).delete()
                 return Response({'status': 'заказ удалён'})
+        return Response({'status': 'НАСТРОЙКА'})
 
 
 class ContactView(ListAPIView):
