@@ -23,6 +23,7 @@ class User(AbstractUser):
         return self.username
 
 class Shop(models.Model):
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Породовец')
     name = models.CharField(max_length=100, verbose_name='Магазин')
     url = models.URLField(blank=True, null=True)
 
@@ -37,6 +38,7 @@ class Shop(models.Model):
 class Category(models.Model):
     shop = models.ManyToManyField(Shop, related_name='categories', blank=True)
     name = models.CharField(max_length=100, verbose_name='Категория')
+
     # external_id = models.PositiveIntegerField(verbose_name='Внешний ИД', blank=True, null=True)
 
     class Meta:
@@ -164,4 +166,7 @@ class Contact(models.Model):
 
     def __str__(self):
         return f'{self.city} {self.street} {self.house}'
+
+
+# class SendInvoice(models.Model):
 

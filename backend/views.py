@@ -33,8 +33,8 @@ class UserRegistration(ListAPIView): # регистрация пользоват
     def post (self, request):
         User.objects.get_or_create(username=request.data['username'],
                                    password=request.data['password'],
-                                   first_name=request.data['first_name'],
-                                   last_name=request.data['last_name'],
+                                   # first_name=request.data['first_name'],
+                                   # last_name=request.data['last_name'],
                                    email=request.data['email'],
                                    )
         return Response({'status UserRegistration': 'ok'})
@@ -50,6 +50,7 @@ class LoginView(ListAPIView):
         user = User.objects.get(username=name[0].username)
         token = Token.objects.create(user=user)
         return Response({'Вход в выполнен.': f' TOKEN: {token}'})
+
 
 class ProductFilterView(ListAPIView):
     """
@@ -67,17 +68,14 @@ class BasketView(ListAPIView):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     filterset_fields = ['id']
-    print('-1--')
     # permission_classes = [IsOwnerOrReadOnly]
     permission_classes = [IsAuthenticated, IsOwner]
-    print('-2-')
-
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def get(self, request):
-        return Response({'status': 'ok'})
+    # def get(self, request):
+    #     return Response({'status': 'ok'})
 
     def post(self, request):
         order, _ = Order.objects.get_or_create(user_id=self.request.user.id, status='В корзине')
@@ -104,8 +102,6 @@ class BasketView(ListAPIView):
                 update_item_id = request.data['id']
                 OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
                 return Response({'status': 'ok'})
-
-
 
     def delete(self, request):
         delete_order_id = request.GET.get('id')
@@ -153,9 +149,12 @@ class OrderView(ListAPIView):
 class ContactView(ListAPIView):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def post(self, request):
-        print(request.data)
         order_it, _ = Contact.objects.get_or_create(user=self.request.user,
                                                     city=request.data['add_contact']['city'],
                                                     street=request.data['add_contact']['street'],
@@ -164,19 +163,8 @@ class ContactView(ListAPIView):
                                                     building=request.data['add_contact']['building'],
                                                     apartment=request.data['add_contact']['apartment'],
                                                     phone=request.data['add_contact']['phone']
-
         )
-        return Response({'status': 'ok'})
-
-
-
-
-
-
-
-
-
-
+        return Response({'status': 'Контакты сохранены'})
 
 
 
@@ -186,8 +174,8 @@ class ShopView(ListAPIView):
     serializer_class = ShopSerializer
 
     def post(self, request):
-        Shop.objects.create(name=request.data['name'], url=request.data['url'])
-        return Response({'status': 'ok'})
+        Shop.objects.create(salesman_id=self.request.user.id, name=request.data['name'], url=request.data['url'])
+        return Response({'status': 'Магазин создан'})
 
 class CategoryView(ListAPIView):
     queryset = Category.objects.all()
@@ -206,50 +194,66 @@ class ProductView(ListAPIView):
 class UpPriseView(ListAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def post(self, request):
-        # wu = Shop.objects.get(id=6)
-        wu = Shop.objects.all().filter(id=7) # id магазина который хотим рбновить
+        try:
+            Shop.objects.get(salesman_id=self.request.user.id)
+        except:
+            return Response({'отказ': 'У вас нет магазина'})
+        else:
+            stream = get(request.data['url']).content
+            data = load_yaml(stream, Loader=Loader)
+            shop = Shop.objects.get(salesman_id=self.request.user.id)
+            for i in data['categories']:
+                category_object, _ = Category.objects.get_or_create(id=i['id'], name=i['name'])
+                category_object.shop.add(shop.id)
+                category_object.save()
+            for i in data['goods']:
+                product, _ = Product.objects.get_or_create(name=i['name'], category_id=i['category'])
+                product_info, _ = ProductInfo.objects.get_or_create(product_id=product.id,
+                                                                    shop_id=shop.id,
+                                                                    name=i['name'],
+                                                                    quantity=i['quantity'],
+                                                                    price=i['price'],
+                                                                    price_rrc=i['price_rrc']
+                                                                    )
+                for name, value in i['parameters'].items():
+                    parameter_object, _ = Parameter.objects.get_or_create(name=name)
+                    ProductParameter.objects.create(product_info_id=product_info.id,
+                                                    parameter_id=parameter_object.id,
+                                                    value=value)
+            return Response({'status': 'Товары обнавлены'})
 
-        print('---', wu[0].url)
 
-        stream = get(wu[0].url).content
+class SendInvoice(ListAPIView):
+    # queryset = Order.objects.all()
+    # serializer_class = OrderSerializer
+    # filterset_fields = ['id']
 
-        data = load_yaml(stream, Loader=Loader)
-# давить проверку если магазин существует не создавать его
-        print('---', data['shop'])
-        # Shop.objects.create(name=data['shop'], url=['www.test.ru'])
-        Shop.objects.get_or_create(name=data['shop'], url=['www.test.ru'])
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-        # print('---id shop')
-        queryset = Shop.objects.all().filter(name=data['shop'])
-        # print('---id shop', queryset[0].id)
-        #
-        # print('---', data['categories'])
-        shop, _ = Shop.objects.get_or_create(name=data['shop'])#, user_id=request.user.id)
-        for i in data['categories']:
-            print('-categoru i-', i)
-            # print('-qyeryset-', queryset[0].id)
-            category_object, _ = Category.objects.get_or_create(id=i['id'],name=i['name'])
-            category_object.shop.add(shop.id)
-            category_object.save()
+    def post(self, request):
+        send_order_id = request.data['invoice']
 
-        for i in data['goods']:
-            product, _ = Product.objects.get_or_create(name=i['name'],  category_id=i['category'])
+        print(send_order_id)
+        try:
+            Order.objects.get(user=self.request.user).user
+        except:
+            return Response({'отказ': 'у вас нет оформленного заказа'})
+        else:
+            try:
+                Order.objects.get(id=send_order_id)
+            except:
+                print('пусто')
+                return Response({'отказ': 'у вас нет такого заказа'})
+            else:
+                Order.objects.filter(id=send_order_id).update(status='Оплачен')
 
-            product_info, _ = ProductInfo.objects.get_or_create(product_id=product.id,
-                                              shop_id=shop.id,
-                                              name=i['name'],
-                                              quantity=i['quantity'],
-                                              price=i['price'],
-                                              price_rrc=i['price_rrc']
-                                              )
-            for name, value in i['parameters'].items():
-                parameter_object, _ = Parameter.objects.get_or_create(name=name)
-                ProductParameter.objects.create(product_info_id=product_info.id,
-                                                parameter_id=parameter_object.id,
-                                                value=value)
-
-        return Response({'status': 'ok'})
+                return Response({'status': 'Накладная отправлена'})
 
 
