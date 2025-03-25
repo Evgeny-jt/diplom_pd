@@ -44,8 +44,8 @@ class ProductParametrAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'dt', 'status']
-    list_filter = ['id', 'user', 'dt', 'status']
+    list_display = ['id', 'buyer', 'salesman', 'dt', 'status']
+    list_filter = ['id', 'buyer', 'salesman', 'dt', 'status']
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):

@@ -23,7 +23,7 @@ class User(AbstractUser):
         return self.username
 
 class Shop(models.Model):
-    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Породовец')
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Породовец', related_name='shop')
     name = models.CharField(max_length=100, verbose_name='Магазин')
     url = models.URLField(blank=True, null=True)
 
@@ -112,7 +112,8 @@ class ProductParameter(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Покупатель')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Покупатель', related_name='buyer')
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец', related_name='salesman')
     dt = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=25, verbose_name='Статус', choices=ORDER_STATUS, default='на подтверждении')
 

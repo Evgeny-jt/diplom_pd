@@ -78,35 +78,40 @@ class BasketView(ListAPIView):
     #     return Response({'status': 'ok'})
 
     def post(self, request):
-        order, _ = Order.objects.get_or_create(user_id=self.request.user.id, status='В корзине')
+        shop_id = Shop.objects.get(id=request.data['add_products'][0]['shop'])
+        user_id = User.objects.get(shop=shop_id).id
+        print('Покупатель', self.request.user.id)
+        print('продавец', user_id)
+
+        order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, salesman_id=user_id, status='В корзине')
         for order_item in request.data['add_products']:
             order_it, _ = OrderItem.objects.get_or_create(order_id=order.id,
                                                           product_info_id=order_item['product_info'],
                                                           shop_id=order_item['shop'],
                                                           quantity=order_item['quantity']
-                                                          )
+            )
         return Response({'status': 'ok'})
     
     def put(self, request):
         try:
-            Order.objects.get(user=self.request.user).user
+            print('---')
+            Order.objects.get(buyer=self.request.user.id)#.user
         except:
             return Response({'отказ': 'у вас ещё нет ни одного оформленного товара'})
         else:
             try:
                 OrderItem.objects.get(id=request.data['id'])
             except:
-                print('пусто')
                 return Response({'отказ': 'у вас нет такого товара'})
             else:
                 update_item_id = request.data['id']
                 OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
-                return Response({'status': 'ok'})
+                return Response({'status': 'Количество товара изменено'})
 
     def delete(self, request):
         delete_order_id = request.GET.get('id')
         try:
-            Order.objects.get(user=self.request.user).user
+            Order.objects.get(buyer=self.request.user.id)#.user
         except:
             return Response({'отказ': 'у вас ещё нет ни одного оформленного товара'})
         else:
@@ -132,7 +137,7 @@ class OrderView(ListAPIView):
     def delete(self, request):
         delete_order_id = request.GET.get('id')
         try:
-            Order.objects.get(user=self.request.user).user
+            Order.objects.get(buyer=self.request.user.id)#.user
         except:
             return Response({'отказ': 'у вас нет оформленного заказа'})
         else:
@@ -230,30 +235,54 @@ class UpPriseView(ListAPIView):
 
 
 class SendInvoice(ListAPIView):
-    # queryset = Order.objects.all()
-    # serializer_class = OrderSerializer
-    # filterset_fields = ['id']
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     def post(self, request):
-        send_order_id = request.data['invoice']
-
-        print(send_order_id)
+        send_order_id = request.data['order']
         try:
-            Order.objects.get(user=self.request.user).user
+            Order.objects.filter(buyer=self.request.user).filter(id=send_order_id).get()
         except:
-            return Response({'отказ': 'у вас нет оформленного заказа'})
+            return Response({'отказ': 'У вас нет токого заказа в корзине'})
         else:
+            if Order.objects.filter(id=send_order_id).get().status != 'В корзине':
+                return Response({'отказ': 'Заказ уже оплачен'})
             try:
-                Order.objects.get(id=send_order_id)
+                Contact.objects.get(user=self.request.user.id)
             except:
-                print('пусто')
-                return Response({'отказ': 'у вас нет такого заказа'})
+                return Response({'отказ': 'У вас не заполнена контактная информация. Добавьте Contact'})
             else:
                 Order.objects.filter(id=send_order_id).update(status='Оплачен')
-
                 return Response({'status': 'Накладная отправлена'})
+
+
+class Status(ListAPIView):
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def post(self, request):
+        status_order_id = request.data['order']
+        status_requesr = request.data['status']
+        try:
+            Order.objects.filter(salesman=self.request.user).filter(id=status_order_id).get()
+        except:
+            return Response({'отказ': 'Такого оплаченого клиентом заказа у вас нет'})
+        else:
+            if Order.objects.filter(id=status_order_id).get().status == 'В корзине':
+                return Response({'отказ': 'Заказ еще не оплачен'})
+            elif Order.objects.filter(id=status_order_id).get().status == status_requesr:
+                return Response({'отказ': 'Попытка перезаписать тотже статус'})
+            Order.objects.filter(id=status_order_id).update(status=status_requesr)
+            return Response({'status': 'Статус заказа изменен'})
+
+
+
+
+
+
+
+
 
 
