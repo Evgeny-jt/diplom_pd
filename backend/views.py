@@ -79,22 +79,25 @@ class OrderItemView(ListAPIView):
 
     def post(self, request):
         shop_id = Shop.objects.get(id=request.data['add_products'][0]['shop'])
-        # user_id = User.objects.get(shop=shop_id).id
-        # print('Покупатель', self.request.user.id)
-        # print('продавец', user_id)
+        id_product_info = request.data["add_products"][0]['product_info']
+        print('---', id_product_info)
+        price = ProductInfo.objects.get(id=id_product_info).price
 
-        # order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, salesman_id=user_id, status='В корзине')
         order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, status='В корзине')
 
         for order_item in request.data['add_products']:
             order_it, _ = OrderItem.objects.get_or_create(order_id=order.id,
                                                           product_info_id=order_item['product_info'],
                                                           shop_id=order_item['shop'],
-                                                          quantity=order_item['quantity']
+                                                          price=price,
+                                                          quantity=order_item['quantity'],
+                                                          order_amount=price * order_item['quantity']
             )
         return Response({'status': 'ok'})
     
     def put(self, request):
+        id_product_info = request.data['id']
+        price = OrderItem.objects.get(id=id_product_info).price
         try:
             Order.objects.filter(order_item=request.data['id']).get().id
         except:
@@ -107,15 +110,13 @@ class OrderItemView(ListAPIView):
             else:
                 if Order.objects.filter(order_item=request.data['id']).get().status != 'В корзине':
                     return Response({'отказ': 'Заказ уже оплачен и перемещен из корзины'})
-                # try:
-                #     OrderItem.objects.get(id=request.data['id'])
-                # except:
-                #     return Response({'отказ': 'у вас нет такого товара'})
-                # else:
+
                 update_item_id = request.data['id']
-                OrderItem.objects.filter(id=update_item_id).update(quantity=request.data['quantity'])
+                OrderItem.objects.filter(id=update_item_id).update(
+                                                                   quantity=request.data['quantity'],
+                                                                   order_amount=price * request.data['quantity']
+                )
                 return Response({'status': 'Количество товара изменено'})
-        return Response({'status': 'НАСТРОЙКА'})
 
 
     def delete(self, request):

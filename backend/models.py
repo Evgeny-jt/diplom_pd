@@ -126,9 +126,9 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ', related_name='order_item', blank=True, null=True)
     product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE,  verbose_name='Информация товара', related_name='order_item', blank=True, null=True)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name='Магазин', blank=True, null=True)
-    # price = models.ForeignKey(ProductInfo, on_delete=models.CASCADE, verbose_name='Цена', blank=True, null=True)
+    price = models.PositiveIntegerField(verbose_name='Цена', blank=True, null=True)
     quantity = models.PositiveIntegerField(verbose_name='Количество', blank=True, null=True)
-    # order_amount = models.PositiveIntegerField(verbose_name='Сумма', blank=True, null=True)
+    order_amount = models.PositiveIntegerField(verbose_name='Сумма', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Заказ'
