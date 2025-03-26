@@ -64,7 +64,7 @@ class ProductFilterView(ListAPIView):
         return Response({'ok': f'{a}'})
 
 
-class BasketView(ListAPIView):
+class OrderItemView(ListAPIView):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     filterset_fields = ['id']
@@ -79,11 +79,13 @@ class BasketView(ListAPIView):
 
     def post(self, request):
         shop_id = Shop.objects.get(id=request.data['add_products'][0]['shop'])
-        user_id = User.objects.get(shop=shop_id).id
-        print('Покупатель', self.request.user.id)
-        print('продавец', user_id)
+        # user_id = User.objects.get(shop=shop_id).id
+        # print('Покупатель', self.request.user.id)
+        # print('продавец', user_id)
 
-        order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, salesman_id=user_id, status='В корзине')
+        # order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, salesman_id=user_id, status='В корзине')
+        order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, status='В корзине')
+
         for order_item in request.data['add_products']:
             order_it, _ = OrderItem.objects.get_or_create(order_id=order.id,
                                                           product_info_id=order_item['product_info'],
@@ -268,8 +270,11 @@ class SendInvoice(ListAPIView):
             except:
                 return Response({'отказ': 'У вас не заполнена контактная информация. Добавьте Contact'})
             else:
-                Order.objects.filter(id=send_order_id).update(status='Оплачен')
-                return Response({'status': 'Накладная отправлена'})
+                for order_item_object in OrderItem.objects.all(): # ищем id продовца по номеру заказа
+                    if int(send_order_id) == order_item_object.order.id:
+                        salesman_id = Shop.objects.get(id=order_item_object.shop.id).id # id продовца по номеру заказа
+                        Order.objects.filter(id=send_order_id).update(salesman_id=salesman_id, status='Оплачен')
+                        return Response({'status': 'Накладная отправлена'})
 
 
 class Status(ListAPIView):

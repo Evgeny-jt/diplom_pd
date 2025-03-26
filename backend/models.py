@@ -17,48 +17,47 @@ ORDER_STATUS = (
 )
 
 class User(AbstractUser):
-    pass
+#    pass
 
     def __str__(self):
         return self.username
 
+
 class Shop(models.Model):
-    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Породовец', related_name='shop')
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец', related_name='shop')
     name = models.CharField(max_length=100, verbose_name='Магазин')
-    url = models.URLField(blank=True, null=True)
+    url = models.URLField(verbose_name='Веб-сайт', blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Магазин1'
-        verbose_name_plural = 'Магазины2'
+        verbose_name = 'Магазин'
+        verbose_name_plural = 'Магазины'
 
     def __str__(self):
         return self.name
 
 
 class Category(models.Model):
-    shop = models.ManyToManyField(Shop, related_name='categories', blank=True)
-    name = models.CharField(max_length=100, verbose_name='Категория')
-
-    # external_id = models.PositiveIntegerField(verbose_name='Внешний ИД', blank=True, null=True)
+    shop = models.ManyToManyField(Shop,  verbose_name='магазин', related_name='categories', blank=True)
+    name = models.CharField(max_length=100, verbose_name='категория')
 
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
-        ordering = ('-name',)
-
+        verbose_name = 'категорию'
+        verbose_name_plural = 'категории'
+#        ordering = ('-name',)
+#
     def __str__(self):
         return self.name
 
 
 class Product(models.Model):
     objects = models.manager.Manager()
-    category = models.ForeignKey(Category, verbose_name='Категория', related_name='products', blank=True, null=True,
+    category = models.ForeignKey(Category, verbose_name='категория', related_name='products', blank=True, null=True,
                                  on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, verbose_name='Продукт')
+    name = models.CharField(max_length=100, verbose_name='товар')
 
     class Meta:
-        verbose_name = 'Товар'
-        verbose_name_plural = 'Товарыы'
+        verbose_name = 'товар'
+        verbose_name_plural = 'товары'
 
     def __str__(self):
         return self.name
@@ -76,12 +75,10 @@ class ProductInfo(models.Model):
 
     class Meta:
         verbose_name = 'Добавить информацию'
-        verbose_name_plural = 'Информация продукта'
+        verbose_name_plural = 'Информация о продукте'
 
     def __str__(self):
         return self.name
-
-
 
 
 class Parameter(models.Model):
@@ -89,14 +86,14 @@ class Parameter(models.Model):
 
     class Meta:
         verbose_name = 'Параметер'
-        verbose_name_plural = 'Параметры'
+        verbose_name_plural = 'Список параметров'
 
     def __str__(self):
         return self.name
 
 
 class ProductParameter(models.Model):
-    product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о продукте',
+    product_info = models.ForeignKey(ProductInfo, verbose_name='Информация о товаре',
                                      related_name='product_parameters', blank=True,
                                      on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, verbose_name='Параметр', related_name='product_parameters', blank=True,
@@ -104,49 +101,39 @@ class ProductParameter(models.Model):
     value = models.CharField(max_length=100)
 
     class Meta:
-        verbose_name = 'Параметры подукта'
-        verbose_name_plural = 'Параметр продукта'
+        verbose_name = 'Параметр товара'
+        verbose_name_plural = 'Параметры товара'
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return f'Параметр товара {self.id}'
 
 
 class Order(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Покупатель', related_name='buyer')
-    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец', related_name='salesman')
-    dt = models.DateTimeField(auto_now_add=True)
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец', related_name='salesman', blank=True, null=True)
+    dt = models.DateTimeField(auto_now_add=True, verbose_name='дата заказа')
     status = models.CharField(max_length=25, verbose_name='Статус', choices=ORDER_STATUS, default='на подтверждении')
 
     class Meta:
-        verbose_name = 'Ордер'
-        verbose_name_plural = 'Ордер'
+        verbose_name = 'Статус заказа'
+        verbose_name_plural = 'Статус заказа'
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return f'Заказ - {self.id}'
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Ордер', related_name='order_item', blank=True, null=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ', related_name='order_item', blank=True, null=True)
     product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE,  verbose_name='Информация товара', related_name='order_item', blank=True, null=True)
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, blank=True, null=True)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name='Магазин', blank=True, null=True)
+    # price = models.ForeignKey(ProductInfo, on_delete=models.CASCADE, verbose_name='Цена', blank=True, null=True)
     quantity = models.PositiveIntegerField(verbose_name='Количество', blank=True, null=True)
+    # order_amount = models.PositiveIntegerField(verbose_name='Сумма', blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Пункт заказа'
-        verbose_name_plural = 'Пункт заказа'
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказ'
 
-
-# class Contact(models.Model):
-#     type = models.CharField(max_length=100)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Контакт')
-#     value = models.CharField(max_length=100)
-#
-#     class Meta:
-#         verbose_name = 'Контакт'
-#         verbose_name_plural = 'Контакты'
-#
-#     def __str__(self):
-#         return self.name
 
 class Contact(models.Model):
     user = models.ForeignKey(User, verbose_name='Пользователь',
@@ -162,12 +149,8 @@ class Contact(models.Model):
     phone = models.CharField(max_length=20, verbose_name='Телефон')
 
     class Meta:
-        verbose_name = 'Контакты пользователя'
-        verbose_name_plural = "Список контактов пользователя"
+        verbose_name = 'Контакт'
+        verbose_name_plural = "Контакты"
 
     def __str__(self):
-        return f'{self.city} {self.street} {self.house}'
-
-
-# class SendInvoice(models.Model):
-
+        return f'{self.user} {self.city} {self.phone}'
