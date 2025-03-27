@@ -270,8 +270,12 @@ class SendInvoice(ListAPIView):
             else:
                 for order_item_object in OrderItem.objects.all(): # ищем id продовца по номеру заказа
                     if int(send_order_id) == order_item_object.order.id:
-                        salesman_id = Shop.objects.get(id=order_item_object.shop.id).id # id продовца по номеру заказа
-                        Order.objects.filter(id=send_order_id).update(salesman_id=salesman_id, status='Оплачен')
+                        shop_id = Shop.objects.get(id=order_item_object.shop.id).id
+                        print('-shop-', shop_id)
+                        user_name = Shop.objects.get(id=shop_id).salesman
+                        print('-user_name-', user_name.id)
+                        # user_id = User.objects.get(shop=user_name).id# id продовца по номеру заказа
+                        Order.objects.filter(id=send_order_id).update(salesman_id=user_name.id, status='Оплачен')
                         return Response({'status': 'Накладная отправлена'})
         return Response({'status': 'НАСТРОЙКА'})
 
@@ -285,6 +289,7 @@ class Status(ListAPIView):
     def post(self, request):
         status_order_id = request.data['order']
         status_requesr = request.data['status']
+
         try:
             Order.objects.filter(salesman=self.request.user).filter(id=status_order_id).get()
         except:
@@ -297,14 +302,29 @@ class Status(ListAPIView):
             # изменить количество товара в магазине
             if quantity_product(request):
                 return Response({'status': 'На складе нет нужного количества товара'})
+            return_order_item = OrderItem.objects.filter(order=request.data['order'])
+
+            if Order.objects.filter(id=status_order_id).get().status == 'Оплачен':
+                for order_quantity in return_order_item:
+                    product_info_id = ProductInfo.objects.get(shop=order_quantity.shop,
+                                                              name=order_quantity.product_info
+                                                              ).id
+                    product_info_quantity = ProductInfo.objects.get(shop=order_quantity.shop,
+                                                                    name=order_quantity.product_info
+                                                                    ).quantity
+                    ProductInfo.objects.filter(id=product_info_id).update(
+                        quantity=product_info_quantity - order_quantity.quantity
+                    )
+
+
 
             Order.objects.filter(id=status_order_id).update(status=status_requesr)
             return Response({'status': 'Статус заказа изменен'})
+        return Response({'status': 'Настройка'})
 
 
 def quantity_product(request):
-    send_order_id = request.data['order']
-    return_order_item = OrderItem.objects.filter(order=send_order_id)
+    return_order_item = OrderItem.objects.filter(order=request.data['order'])
     for order_quantity in return_order_item:
         quantity_shop = ProductInfo.objects.get(shop=order_quantity.shop,
                                                 name=order_quantity.product_info
