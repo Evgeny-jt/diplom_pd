@@ -137,8 +137,6 @@ class OrderItemView(ListAPIView):
                 return Response({'status': 'Товар удалён из корзины'})
 
 
-
-
 class OrderView(ListAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -150,7 +148,6 @@ class OrderView(ListAPIView):
     def delete(self, request):
         delete_order_id = request.GET.get('id')
         print(delete_order_id)
-
         try:
             delete_order_id = Order.objects.filter(id=delete_order_id).get().id
             print(delete_order_id)
@@ -188,8 +185,6 @@ class ContactView(ListAPIView):
                                                     phone=request.data['add_contact']['phone']
         )
         return Response({'status': 'Контакты сохранены'})
-
-
 
 
 class ShopView(ListAPIView):
@@ -255,15 +250,17 @@ class UpPriseView(ListAPIView):
 class SendInvoice(ListAPIView):
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.data)
 
     def post(self, request):
         send_order_id = request.data['order']
         try:
-            Order.objects.filter(buyer=self.request.user).filter(id=send_order_id).get()
+            Order.objects.filter(buyer=self.request.user).filter(id=send_order_id).get().id
         except:
             return Response({'отказ': 'У вас нет токого заказа в корзине'})
         else:
+            if quantity_product(request):
+                return Response({'отказ': 'В магазине нет такого количества заказываемого товара'})
             if Order.objects.filter(id=send_order_id).get().status != 'В корзине':
                 return Response({'отказ': 'Заказ уже оплачен'})
             try:
@@ -276,6 +273,8 @@ class SendInvoice(ListAPIView):
                         salesman_id = Shop.objects.get(id=order_item_object.shop.id).id # id продовца по номеру заказа
                         Order.objects.filter(id=send_order_id).update(salesman_id=salesman_id, status='Оплачен')
                         return Response({'status': 'Накладная отправлена'})
+        return Response({'status': 'НАСТРОЙКА'})
+
 
 
 class Status(ListAPIView):
@@ -295,15 +294,20 @@ class Status(ListAPIView):
                 return Response({'отказ': 'Заказ еще не оплачен'})
             elif Order.objects.filter(id=status_order_id).get().status == status_requesr:
                 return Response({'отказ': 'Попытка перезаписать тотже статус'})
+            # изменить количество товара в магазине
+            if quantity_product(request):
+                return Response({'status': 'На складе нет нужного количества товара'})
+
             Order.objects.filter(id=status_order_id).update(status=status_requesr)
             return Response({'status': 'Статус заказа изменен'})
 
 
-
-
-
-
-
-
-
-
+def quantity_product(request):
+    send_order_id = request.data['order']
+    return_order_item = OrderItem.objects.filter(order=send_order_id)
+    for order_quantity in return_order_item:
+        quantity_shop = ProductInfo.objects.get(shop=order_quantity.shop,
+                                                name=order_quantity.product_info
+                                                ).quantity
+        if order_quantity.quantity > quantity_shop:
+            return Response({'отказ': 'В магазине нет такого количества заказываемого товара'})
