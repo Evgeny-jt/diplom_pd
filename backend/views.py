@@ -19,9 +19,6 @@ from .models import User, Shop, Category, Product, ProductInfo, Parameter, Produ
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.authentication import TokenAuthentication
 
 from backend.permissions import IsOwner
 
@@ -68,7 +65,6 @@ class OrderItemView(ListAPIView):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     filterset_fields = ['id']
-    # permission_classes = [IsOwnerOrReadOnly]
     permission_classes = [IsAuthenticated, IsOwner]
 
     def perform_create(self, serializer):
@@ -294,7 +290,6 @@ class Status(ListAPIView):
                 return Response({'отказ': 'Заказ еще не оплачен'})
             elif Order.objects.filter(id=status_order_id).get().status == status_requesr:
                 return Response({'отказ': 'Попытка перезаписать тотже статус'})
-            # изменить количество товара в магазине
             if quantity_product(request):
                 return Response({'status': 'На складе нет нужного количества товара'})
 
