@@ -1,11 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, User
 
-USER_TYPE = (
-    ('buyer', 'Покупатель'),
-    ('shop', 'Магазин'),
-)
-
 ORDER_STATUS = (
     ('В корзине', 'В корзине'),
     ('Оплачен', 'Оплачен'),
@@ -16,8 +11,8 @@ ORDER_STATUS = (
     ('Отменен', 'Отменен'),
 )
 
+
 class User(AbstractUser):
-#    pass
 
     def __str__(self):
         return self.username
@@ -37,14 +32,13 @@ class Shop(models.Model):
 
 
 class Category(models.Model):
-    shop = models.ManyToManyField(Shop,  verbose_name='магазин', related_name='categories', blank=True)
+    shop = models.ManyToManyField(Shop, verbose_name='магазин', related_name='categories', blank=True)
     name = models.CharField(max_length=100, verbose_name='категория')
 
     class Meta:
         verbose_name = 'категорию'
         verbose_name_plural = 'категории'
-#        ordering = ('-name',)
-#
+
     def __str__(self):
         return self.name
 
@@ -110,7 +104,8 @@ class ProductParameter(models.Model):
 
 class Order(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Покупатель', related_name='buyer')
-    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец', related_name='salesman', blank=True, null=True)
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец', related_name='salesman',
+                                 blank=True, null=True)
     dt = models.DateTimeField(auto_now_add=True, verbose_name='дата заказа')
     status = models.CharField(max_length=25, verbose_name='Статус', choices=ORDER_STATUS, default='на подтверждении')
 
@@ -123,8 +118,10 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ', related_name='order_item', blank=True, null=True)
-    product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE,  verbose_name='Информация товара', related_name='order_item', blank=True, null=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ', related_name='order_item',
+                              blank=True, null=True)
+    product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE, verbose_name='Информация товара',
+                                     related_name='order_item', blank=True, null=True)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, verbose_name='Магазин', blank=True, null=True)
     price = models.PositiveIntegerField(verbose_name='Цена', blank=True, null=True)
     quantity = models.PositiveIntegerField(verbose_name='Количество', blank=True, null=True)

@@ -87,14 +87,14 @@ WSGI_APPLICATION = 'orders.wsgi.application'
 #     }
 # }
 DATABASES = {
-  'default': {
-      'ENGINE': 'django.db.backends.postgresql',
-      'NAME': 'diplom',
-      'HOST': '127.0.0.1',
-      'PORT': '5432',
-      'USER': 'postgres',
-      'PASSWORD': '2025p',
-  }
+ 'default': {
+     'ENGINE': 'django.db.backends.postgresql',
+     'NAME': 'diplom',
+     'HOST': '127.0.0.1',
+     'PORT': '5432',
+     'USER': 'postgres',
+     'PASSWORD': '2025p',
+ }
 }
 
 # Password validation
