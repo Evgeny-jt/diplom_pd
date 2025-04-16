@@ -1,14 +1,18 @@
+import random
 from multiprocessing.managers import Token
 from requests import get
 from yaml import load as load_yaml, Loader
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, UserSerializer, OrderSerializer, \
     OrderItemSerializer, ContactSerializer
 from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from backend.permissions import IsOwner
+
+from .send_email import send_email_registration
+from backend.tasks import send_email_registration_task
 
 
 class UserRegistration(ListAPIView):
@@ -27,6 +31,12 @@ class UserRegistration(ListAPIView):
                                        # last_name=request.data['last_name'],
                                        email=request.data['email'],
                                        )
+            mail_confirmation_code = random.randint(1000, 9999)
+            print(mail_confirmation_code)
+            send_email_registration_task.delay(send_email=request.data['email'], content=str(mail_confirmation_code))
+
+
+
         except:
             return Response({'отказ': 'Заполнены не все обязательные поля'})
 
