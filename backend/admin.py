@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, MailConfirmationCode
 
 
 @admin.register(User)
@@ -7,6 +7,10 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ['id', 'username', 'password', 'email', 'first_name', 'last_name']
     list_filter = ['id', 'username', 'password', 'email', 'first_name', 'last_name']
 
+@admin.register(MailConfirmationCode)
+class MailConfirmationCode(admin.ModelAdmin):
+    list_display = ['id', 'user', 'code']
+    list_filter = ['id', 'user', 'code']
 
 @admin.register(Shop)
 class ShopAdmin(admin.ModelAdmin):

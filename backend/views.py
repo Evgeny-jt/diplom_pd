@@ -6,13 +6,13 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, UserSerializer, OrderSerializer, \
     OrderItemSerializer, ContactSerializer
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, MailConfirmationCode
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from backend.permissions import IsOwner
 
 from .send_email import send_email_registration
-from backend.tasks import send_email_registration_task
+from backend.tasks import send_email_task, code_email_delete_task
 
 
 class UserRegistration(ListAPIView):
@@ -24,18 +24,27 @@ class UserRegistration(ListAPIView):
         Создание нового пользователя
         Возвращает успех или отказ с описанием
         '''
+        if User.objects.filter(username=request.data['username']).exists():
+            return Response({'отказ': 'Имя пользователя занято'})
+        if User.objects.filter(email=request.data['email']).exists():
+            return Response({'отказ': 'Пользоватеть с таким email уже существует'})
         try:
             User.objects.get_or_create(username=request.data['username'],
                                        password=request.data['password'],
-                                       # first_name=request.data['first_name'],
-                                       # last_name=request.data['last_name'],
                                        email=request.data['email'],
                                        )
             mail_confirmation_code = random.randint(1000, 9999)
-            print(mail_confirmation_code)
-            send_email_registration_task.delay(send_email=request.data['email'], content=str(mail_confirmation_code))
-
-
+            user_name = User.objects.get(username=request.data['username'])
+            MailConfirmationCode.objects.create(user=user_name, code=mail_confirmation_code)
+            send_email_task.delay(
+                send_email=request.data['email'],
+                content=str(f'Ваш код подтверждения: {mail_confirmation_code}')
+            )
+            print('почта отправлена')
+            code_id = MailConfirmationCode.objects.get(user=user_name).id
+            print(user_name, code_id)
+            code_email_delete_task.delay(code_id=code_id, sec_sleep=300)
+            print('удалено')
 
         except:
             return Response({'отказ': 'Заполнены не все обязательные поля'})
@@ -48,20 +57,28 @@ class LoginView(ListAPIView):
     Класс получения токена
     Возвращает успех или отказ с описанием
     '''
-
     def post(self, request):
         if not User.objects.filter(email=request.data['email']).filter(password=request.data['password']).exists():
-            return Response({'отказ': f'Неверный логин или пароль'})
+            return Response({'отказ': 'Неверный логин или пароль'})
         user_id = User.objects.get(email=request.data['email']).id
+        mail_user_code = MailConfirmationCode.objects.get(user=user_id).code
+        if mail_user_code != int(request.data['mail_confirmation_code']):
+            return Response({'отказ': 'Неверный код подтверждения'})
         token = Token.objects.create(user_id=user_id)
-        return Response({'Вход в выполнен.': f' TOKEN: {token}'})
+        send_email_task.delay(
+            send_email=request.data['email'],
+            content=str(f'Ваш токен: {token}')
+        )
+        code_id = MailConfirmationCode.objects.get(user=user_id).id
+        code_email_delete_task.delay(code_id=code_id)
+        return Response({'успех': 'Вход в выполнен.'})
+
 
 
 class ProductFilterView(ListAPIView):
     """
         Класс для просмотра доступных товаров по id
     """
-
     def get(self, request):
         product = ProductInfo.objects.filter(id=request.GET.get('id'))[0]
         return Response({'товар': f'{product.id}, {product.name}, {product.price}, {product.quantity}, {product.shop}'})

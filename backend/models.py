@@ -18,6 +18,18 @@ class User(AbstractUser):
         return self.username
 
 
+class MailConfirmationCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Польлователь', related_name='code_email')
+    code = models.IntegerField(max_length=4, verbose_name='Код подтверждения')
+
+    class Meta:
+        verbose_name = 'Код подтверждения почты'
+        verbose_name_plural = 'Код подтверждения почты'
+
+    def __str__(self):
+        return str(self.code)
+
+
 class Shop(models.Model):
     salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец', related_name='shop')
     name = models.CharField(max_length=100, verbose_name='Магазин')
