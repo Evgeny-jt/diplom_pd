@@ -20,7 +20,7 @@ class User(AbstractUser):
 
 class MailConfirmationCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Польлователь', related_name='code_email')
-    code = models.IntegerField(max_length=4, verbose_name='Код подтверждения')
+    code = models.IntegerField(verbose_name='Код подтверждения')
 
     class Meta:
         verbose_name = 'Код подтверждения почты'

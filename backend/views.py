@@ -6,7 +6,8 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from orders.serializers import ShopSerializer, CategorySerializer, ProductSerializer, UserSerializer, OrderSerializer, \
     OrderItemSerializer, ContactSerializer
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, MailConfirmationCode
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, \
+    MailConfirmationCode
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from backend.permissions import IsOwner
@@ -47,10 +48,12 @@ class UserRegistration(ListAPIView):
                                    password=request.data['password'],
                                    email=request.data['email'],
                                    )
-        if not User.objects.filter(username='user_test_api_pytest').exists():
-            mail_confirmation_code = random.randint(1000, 9999)
-        else:
+        if User.objects.filter(username='salesman1_pytest_api').exists():
             mail_confirmation_code = 2071
+        elif User.objects.filter(username='buyer1_pytest_api').exists():
+            mail_confirmation_code = 2071
+        else:
+            mail_confirmation_code = random.randint(1000, 9999)
         user_name = User.objects.get(username=request.data['username'])
         MailConfirmationCode.objects.create(user=user_name, code=mail_confirmation_code)
         send_email_task.delay(
@@ -59,10 +62,8 @@ class UserRegistration(ListAPIView):
         )
         code_id = MailConfirmationCode.objects.get(user=user_name).id
         code_email_delete_task.delay(code_id=code_id, sec_sleep=60)
-
         return Response({'успех': 'Регистрация выполнена'})
 
-##################
     def delete(self, request):
         user = User.objects.get(username=request.data['username'])
         if user != self.request.user:
@@ -72,7 +73,6 @@ class UserRegistration(ListAPIView):
         delete_user_id = User.objects.get(username=request.data['username']).id
         User.objects.filter(id=delete_user_id).delete()
         return Response({'успех': 'Пользователь удалён'})
-###########################
 
 
 class LoginView(ListAPIView):
@@ -80,6 +80,7 @@ class LoginView(ListAPIView):
     Класс получения токена
     Возвращает успех или отказ с описанием
     '''
+
     def post(self, request):
         if not User.objects.filter(email=request.data['email']).filter(password=request.data['password']).exists():
             return Response({'отказ': 'Неверный логин или пароль'})
@@ -89,9 +90,12 @@ class LoginView(ListAPIView):
             return Response({'отказ': 'Неверный код подтверждения'})
         token = Token.objects.create(user_id=user_id)
 
-        if User.objects.filter(username='user_test_api_pytest').exists():
-            with open('tests/backend/token_user_test_api_pytest.txt', 'w', encoding='utf-8') as file:
-                file.write(f'{token}')
+        name = request.data['username']
+        save_token_file(token=token, name=name)
+        #        if name == 'salesman1_pytest_api' or name == 'buyer1_pytest_api':
+        #            print(name)
+        #            with open(f'tests/backend/token_{name}.txt', 'w', encoding='utf-8') as file:
+        #                file.write(f'{token}')
 
         send_email_task.delay(
             send_email=request.data['email'],
@@ -106,6 +110,7 @@ class ProductFilterView(ListAPIView):
     """
         Класс для просмотра доступных товаров по id
     """
+
     def get(self, request):
         product = ProductInfo.objects.filter(id=request.GET.get('id'))[0]
         return Response({'товар': f'{product.id}, {product.name}, {product.price}, {product.quantity}, {product.shop}'})
@@ -129,9 +134,13 @@ class OrderItemView(ListAPIView):
         serializer.save(user=self.request.user)
 
     def post(self, request):
+        print('---order item----')
         id_product_info = request.data["add_products"][0]['product_info']
+        print('---order item2----')
         price = ProductInfo.objects.get(id=id_product_info).price
+        print('---order item3----')
         order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, status='В корзине')
+        print('---order item4----')
         for order_item in request.data['add_products']:
             order_it, _ = OrderItem.objects.get_or_create(order_id=order.id,
                                                           product_info_id=order_item['product_info'],
@@ -140,15 +149,16 @@ class OrderItemView(ListAPIView):
                                                           quantity=order_item['quantity'],
                                                           order_amount=price * order_item['quantity']
                                                           )
+            print('---order item5----')
         return Response({'успех': 'Все товары добавленны в заказ'})
 
     def put(self, request):
         id_product_info = request.data['id']
         if OrderItem.objects.filter(id=id_product_info).exists() == False:
-            return Response({'У вас нет такого товара в корзине'})  # У вас нет такого товара в корзине
+            return Response({'отказ': 'У вас нет такого товара в корзине'})  # У вас нет такого товара в корзине
         price = OrderItem.objects.get(id=id_product_info).price
-        if not Order.objects.filter(buyer=self.request.user.id).filter(order_item=request.data['id']).exists():
-            return Response({'отказ': 'Сначало добавте товар в корзину'})
+        #        if not Order.objects.filter(buyer=self.request.user.id).filter(order_item=request.data['id']).exists():
+        #            return Response({'отказ': 'Сначало добавте товар в корзину'})
         if Order.objects.filter(order_item=request.data['id']).get().status != 'В корзине':
             return Response({'отказ': 'Заказ уже оплачен и перемещен из корзины'})
         update_item_id = request.data['id']
@@ -156,15 +166,15 @@ class OrderItemView(ListAPIView):
             quantity=request.data['quantity'],
             order_amount=price * request.data['quantity']
         )
-        return Response({'status': 'Количество товара изменено'})
+        return Response({'отказ': 'Количество товара изменено'})
 
     def delete(self, request):
         delete_order_item_id = request.GET.get('id')
         if not Order.objects.filter(order_item=delete_order_item_id).exists():
-            return Response({'отказ': 'У вас нет такого товара в корзине'})
+            return Response({'отказ': 'В корзине нет товара с таким id'})
         delete_order_id = Order.objects.filter(order_item=delete_order_item_id).get().id
-        if not Order.objects.filter(buyer=self.request.user.id).filter(id=delete_order_id).exists():
-            return Response({'отказ': 'Нужно добавить товар в корзину'})
+        #        if not Order.objects.filter(buyer=self.request.user.id).filter(id=delete_order_id).exists():
+        #            return Response({'отказ': 'Нужно добавить товар в корзину'})
         if Order.objects.filter(id=delete_order_id).get().status != 'В корзине':
             return Response({'отказ': 'Заказ уже оплачен и перемещен из корзины'})
         OrderItem.objects.filter(id=delete_order_item_id).delete()
@@ -284,6 +294,10 @@ class UpPriseView(ListAPIView):
         serializer.save(user=self.request.user)
 
     def post(self, request):
+        try:
+            request.data['url']
+        except:
+            return Response({'отказ': 'Url не заполнен'})
         if not Shop.objects.filter(salesman=self.request.user).exists():
             return Response({'отказ': 'У вас нет магазина'})
         stream = get(request.data['url']).content
@@ -344,7 +358,7 @@ class SendInvoice(ListAPIView):
 class Status(ListAPIView):
     '''
         Класс изменяет статус заказа.
-        Изменяет методом post. Метод уменьшает количество товара в магазине на заказанное число товара и меняет статус корзины. 
+        Изменяет методом post. Метод уменьшает количество товара в магазине на заказанное число товара и меняет статус корзины.
         Возвращает успех или отказ с описанием
     '''
 
@@ -389,3 +403,10 @@ def quantity_product(request):
                                                 ).quantity
         if order_quantity.quantity > quantity_shop:
             return Response({'отказ': 'В магазине нет такого количества заказываемого товара'})
+
+
+def save_token_file(token, name):
+    if name == 'salesman1_pytest_api' or name == 'buyer1_pytest_api':
+        with open(f'tests/backend/token_{name}.txt', 'w', encoding='utf-8') as file:
+            file.write(f'{token}')
+    return
