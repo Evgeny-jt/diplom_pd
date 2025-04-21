@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'backend',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+
+    'cachalot',
 ]
 
 MIDDLEWARE = [
