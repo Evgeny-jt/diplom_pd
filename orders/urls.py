@@ -21,6 +21,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 from backend.views import UserRegistration, ShopView, CategoryView, UpPriseView, ProductView, ProductFilterView, \
     LoginView, OrderView, ContactView, OrderItemView, SendInvoice, Status
 
+from django.conf import settings
+from django.contrib.auth import logout
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', UserRegistration.as_view()),
@@ -41,5 +44,11 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='docs'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # path('', include('social_django.urls')),
+    # path('authvk/', authvk),
+
+    path('', include('social_django.urls', namespace='social')),
+    path('logout/', logout,), # {'next_page': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
 ]

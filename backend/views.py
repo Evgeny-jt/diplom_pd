@@ -1,5 +1,8 @@
 import random
+import json
 from multiprocessing.managers import Token
+
+from django.shortcuts import render
 from requests import get
 from yaml import load as load_yaml, Loader
 from rest_framework.generics import ListAPIView
@@ -12,8 +15,10 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from backend.permissions import IsOwner
 
-from .send_email import send_email_registration
+# from .send_email import send_email_registration
 from backend.tasks import send_email_task, code_email_delete_task
+
+from .test import save_token_file, save_product_info_file, save_order_file
 
 
 class UserRegistration(ListAPIView):
@@ -48,14 +53,18 @@ class UserRegistration(ListAPIView):
                                    password=request.data['password'],
                                    email=request.data['email'],
                                    )
-        if User.objects.filter(username='salesman1_pytest_api').exists():
+        print('---username---', request.data['username'])
+        if User.objects.filter(username='salesman1_pytest_api').exists() and request.data['username'] == 'salesman1_pytest_api':
             mail_confirmation_code = 2071
-        elif User.objects.filter(username='buyer1_pytest_api').exists():
+            print('---------Код для продавца')
+        elif User.objects.filter(username='buyer1_pytest_api').exists() and request.data['username'] == 'buyer1_pytest_api':
+            print('---------Код для покупателя')
             mail_confirmation_code = 2071
         else:
             mail_confirmation_code = random.randint(1000, 9999)
         user_name = User.objects.get(username=request.data['username'])
         MailConfirmationCode.objects.create(user=user_name, code=mail_confirmation_code)
+        print('-----', request.data['email'], '------', mail_confirmation_code)
         send_email_task.delay(
             send_email=request.data['email'],
             content=str(f'Ваш код подтверждения: {mail_confirmation_code}')
@@ -92,10 +101,6 @@ class LoginView(ListAPIView):
 
         name = request.data['username']
         save_token_file(token=token, name=name)
-        #        if name == 'salesman1_pytest_api' or name == 'buyer1_pytest_api':
-        #            print(name)
-        #            with open(f'tests/backend/token_{name}.txt', 'w', encoding='utf-8') as file:
-        #                file.write(f'{token}')
 
         send_email_task.delay(
             send_email=request.data['email'],
@@ -134,13 +139,9 @@ class OrderItemView(ListAPIView):
         serializer.save(user=self.request.user)
 
     def post(self, request):
-        print('---order item----')
         id_product_info = request.data["add_products"][0]['product_info']
-        print('---order item2----')
         price = ProductInfo.objects.get(id=id_product_info).price
-        print('---order item3----')
         order, _ = Order.objects.get_or_create(buyer_id=self.request.user.id, status='В корзине')
-        print('---order item4----')
         for order_item in request.data['add_products']:
             order_it, _ = OrderItem.objects.get_or_create(order_id=order.id,
                                                           product_info_id=order_item['product_info'],
@@ -149,7 +150,7 @@ class OrderItemView(ListAPIView):
                                                           quantity=order_item['quantity'],
                                                           order_amount=price * order_item['quantity']
                                                           )
-            print('---order item5----')
+        save_order_file(user=self.request.user)
         return Response({'успех': 'Все товары добавленны в заказ'})
 
     def put(self, request):
@@ -322,6 +323,7 @@ class UpPriseView(ListAPIView):
                                                 parameter_id=parameter_object.id,
                                                 value=value
                                                 )
+        save_product_info_file(shop=shop, name=self.request.user)
         return Response({'успех': 'Товары обновлены'})
 
 
@@ -337,6 +339,7 @@ class SendInvoice(ListAPIView):
 
     def post(self, request):
         send_order_id = request.data['order']
+        print("---send_order_id----", send_order_id)
         if not Order.objects.filter(buyer=self.request.user).filter(id=send_order_id).exists():
             return Response({'отказ': 'У вас нет такого заказа в корзине'})
         if quantity_product(request):
@@ -351,7 +354,15 @@ class SendInvoice(ListAPIView):
                 user_name = Shop.objects.get(id=shop_id).salesman
                 # user_id = User.objects.get(shop=user_name).id# id продавца по номеру заказа
                 Order.objects.filter(id=send_order_id).update(salesman_id=user_name.id, status='Оплачен')
-                return Response({'status': 'Накладная отправлена'})
+                user_email = User.objects.get(id=user_name.id).email
+                buyer = User.objects.get(id=self.request.user.id).username
+
+                print('----------user_email----------', user_email)
+                send_email_task.delay(
+                    send_email=user_email,
+                    content=str(f'Покупатель {buyer} оплатил заказ № - {send_order_id}.')
+                )
+                return Response({'успех': 'Накладная отправлена'})
         return Response({'status': 'НАСТРОЙКА'})
 
 
@@ -375,7 +386,7 @@ class Status(ListAPIView):
         elif Order.objects.filter(id=status_order_id).get().status == status_requesr:
             return Response({'отказ': 'Попытка перезаписать тот же статус'})
         if quantity_product(request):
-            return Response({'status': 'На складе нет нужного количества товара'})
+            return Response({'отказ': 'На складе нет нужного количества товара'})
         return_order_item = OrderItem.objects.filter(order=request.data['order'])
         if Order.objects.filter(id=status_order_id).get().status == 'Оплачен':
             for order_quantity in return_order_item:
@@ -388,7 +399,18 @@ class Status(ListAPIView):
                 ProductInfo.objects.filter(id=product_info_id).update(
                     quantity=product_info_quantity - order_quantity.quantity)
         Order.objects.filter(id=status_order_id).update(status=status_requesr)
-        return Response({'status': 'Статус заказа изменен'})
+        print('-------')
+        user_name = Order.objects.get(id=status_order_id).buyer
+        print('-------user_id: ', user_name)
+
+        user_email = User.objects.get(username=user_name).email
+        print('-------user_email: ', user_email)
+
+        send_email_task.delay(
+            send_email=user_email,
+            content=str(f'Статус заказа № - {request.data['order']} изменен на {request.data['status']}.')
+        )
+        return Response({'успех': 'Статус заказа изменен'})
 
 
 def quantity_product(request):
@@ -403,10 +425,3 @@ def quantity_product(request):
                                                 ).quantity
         if order_quantity.quantity > quantity_shop:
             return Response({'отказ': 'В магазине нет такого количества заказываемого товара'})
-
-
-def save_token_file(token, name):
-    if name == 'salesman1_pytest_api' or name == 'buyer1_pytest_api':
-        with open(f'tests/backend/token_{name}.txt', 'w', encoding='utf-8') as file:
-            file.write(f'{token}')
-    return
