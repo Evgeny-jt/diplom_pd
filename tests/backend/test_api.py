@@ -4,7 +4,6 @@ import json
 import random
 
 
-
 @pytest.fixture
 def salesman_registration_json():
     json_user = {
@@ -31,6 +30,7 @@ def buyer_registration_json():
 def salesman1():
     return 'tests/backend/token_salesman1_pytest_api.json'
 
+
 @pytest.fixture
 def buyer1():
     return 'tests/backend/token_buyer1_pytest_api.json'
@@ -41,7 +41,7 @@ def test_1_salesman_delete(salesman1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_user = {"username": "salesman1_pytest_api"}
     response = requests.delete("http://127.0.0.1:8000/user/", json=json_user, headers=headers)
     assert response.text == '{"успех":"Пользователь удалён"}'
@@ -52,7 +52,7 @@ def test_2_buyer_delete(buyer1):
     with open(buyer1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_user = {"username": "buyer1_pytest_api"}
     response = requests.delete("http://127.0.0.1:8000/user/", json=json_user, headers=headers)
     print(response.status_code)
@@ -103,6 +103,7 @@ def test_9_get_list_user():
     response = requests.get("http://127.0.0.1:8000/user/")
     assert response.status_code == 200
 
+
 ### вход пользователя c неверным логином или паролем
 def test_10_user_login_folse():
     json = {"email": "tteesstt@mail.ru", "password": "user1"}
@@ -124,7 +125,7 @@ def test_12_user_buyer_login(buyer_registration_json):
 
 ### создать магазин с неверным токеном
 def test_13_create_shop_invalid_token():
-    invalid_token={'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
+    invalid_token = {'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
     json = {"name": " Связной_test", "url": "www.связной.ру"}
     response = requests.post("http://localhost:8000/shop/", json=json, headers=invalid_token)
     assert response.text == '{"detail":"Invalid token."}'
@@ -135,7 +136,7 @@ def test_14_create_shop_correct_token(salesman1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_shop = {"name": " Связной_test", "url": "www.связной.ру"}
     response = requests.post("http://localhost:8000/shop/", json=json_shop, headers=headers)
     assert response.text == '{"успех":"Магазин создан"}'
@@ -146,7 +147,7 @@ def test_15_create_shop_with_a_taken_name(salesman1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_shop = {"name": " Связной_test", "url": "www.связной.ру"}
     response = requests.post("http://localhost:8000/shop/", json=json_shop, headers=headers)
     assert response.text == '{"отказ":"Магазин с таким названием уже существует"}'
@@ -157,7 +158,7 @@ def test_16_create_shop_with_not_all_fields_filled_in(salesman1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_shop = {"name": " Связной_test17"}
     response = requests.post("http://localhost:8000/shop/", json=json_shop, headers=headers)
     assert response.text == '{"отказ":"Заполнены не все обязательные поля"}'
@@ -174,7 +175,7 @@ def test_18_up_list_shop(salesman1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_url = {"url": "https://raw.githubusercontent.com/netology-code/python-final-diplom/master/data/shop1.yaml"}
     response = requests.post("http://localhost:8000/up/", json=json_url, headers=headers)
     assert response.text == '{"успех":"Товары обновлены"}'
@@ -182,7 +183,7 @@ def test_18_up_list_shop(salesman1):
 
 ### обновление товаров в магазине c неверным токеном
 def test_19_up_invalid_token(salesman1):
-    headers={'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
+    headers = {'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
     json = {"url": "https://raw.githubusercontent.com/netology-code/python-final-diplom/master/data/shop1.yaml"}
     response = requests.post("http://localhost:8000/up/", json=json, headers=headers)
     assert response.text == '{"detail":"Invalid token."}'
@@ -193,7 +194,7 @@ def test_20_create_shop_with_not_all_fields_filled_in(salesman1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_url = {}
     response = requests.post("http://localhost:8000/up/", json=json_url, headers=headers)
     assert response.text == '{"отказ":"Url не заполнен"}'
@@ -211,26 +212,26 @@ def test_21_create_orderitem(buyer1, salesman1):
     jp = []
     for id_product in product_info.split(", "):
         jp.append({"product_info": int(id_product), "shop": int(shop), "quantity": random.randint(2, 5)})
-    headers={'Authorization': f'Token {token}'}
-    json_product = {"add_products":jp}
+    headers = {'Authorization': f'Token {token}'}
+    json_product = {"add_products": jp}
     response = requests.post("http://127.0.0.1:8000/orderitem/", json=json_product, headers=headers)
     assert response.text == '{"успех":"Все товары добавленны в заказ"}'
 
 
-
 ### КОРЗИНА - добавить товары в корзину c неверным токеном
 def test_22_create_orderitem_invalid_token():
-    invalid_token={'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
-    json = {"add_products":[{"product_info": 10, "shop": 11, "quantity": 10}]}
+    invalid_token = {'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
+    json = {"add_products": [{"product_info": 10, "shop": 11, "quantity": 10}]}
     response = requests.post("http://127.0.0.1:8000/orderitem/", json=json, headers=invalid_token)
     assert response.text == '{"detail":"Invalid token."}'
+
 
 ### КОРЗИНА - посмотреть содержание корзины
 def test_23_get_list_basket(buyer1):
     with open(buyer1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     response = requests.get("http://127.0.0.1:8000/orderitem/", headers=headers)
     assert response.status_code == 200
 
@@ -241,7 +242,7 @@ def test_24_put_quantity_by_id(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order_item = json_data['order_item']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_product = {"id": order_item, "quantity": 77}
     response = requests.put("http://127.0.0.1:8000/orderitem/", json=json_product, headers=headers)
     assert response.text == '{"отказ":"Количество товара изменено"}'
@@ -253,7 +254,7 @@ def test_25_put_quantity_no_id(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order_item = json_data['order_item'] + 1
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_product = {"id": order_item, "quantity": 77}
     response = requests.put("http://127.0.0.1:8000/orderitem/", json=json_product, headers=headers)
     assert response.text == '{"отказ":"У вас нет такого товара в корзине"}'
@@ -265,7 +266,7 @@ def test_26_create_order(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order = json_data['order']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_product = {"order": order}
     response = requests.post("http://127.0.0.1:8000/sendinvoice/", json=json_product, headers=headers)
     assert response.text == '{"отказ":"В магазине нет такого количества заказываемого товара"}'
@@ -277,14 +278,14 @@ def test_27_delete_order_by_id(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order_item = json_data['order_item']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     response = requests.delete(f"http://127.0.0.1:8000/orderitem/?id={order_item}", headers=headers)
     assert response.text == '{"успех":"Товар удалён из корзины"}'
 
 
 ### КОРЗИНА - удалить товар по его id с неверным токеном
 def test_28_delete_order_by_id_invalid_token(buyer1):
-    invalid_token={'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
+    invalid_token = {'Authorization': 'Token ee5550f707475e92a1c151e6a75eb61a6ecabd'}
     response = requests.delete("http://127.0.0.1:8000/orderitem/?id=7", headers=invalid_token)
     assert response.text == '{"detail":"Invalid token."}'
 
@@ -295,7 +296,7 @@ def test_29_delete_order_by_id_invalid_id(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order_item = json_data['order_item'] + 1
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     response = requests.delete(f"http://127.0.0.1:8000/orderitem/?id={order_item}", headers=headers)
     assert response.text == '{"отказ":"В корзине нет товара с таким id"}'
 
@@ -305,7 +306,7 @@ def test_30_get_list_order(buyer1):
     with open(buyer1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     response = requests.get("http://127.0.0.1:8000/order/", headers=headers)
     assert response.status_code == 200
 
@@ -316,7 +317,7 @@ def test_31_pay_order_no_contact(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order = json_data['order']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_product = {"order": order}
     response = requests.post("http://127.0.0.1:8000/sendinvoice/", json=json_product, headers=headers)
     assert response.text == '{"отказ":"У вас не заполнена контактная информация. Добавьте Contact"}'
@@ -327,16 +328,16 @@ def test_32_create_contact(buyer1):
     with open(buyer1, encoding='utf-8') as file:
         json_data = json.load(file)
     token = json_data['token']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_contact = {"add_contact":
-        {"city": "Москва",
-         "street": "Мира",
-         "house": "111",
-         "structure": "А",
-         "building": "Аа",
-         "apartment": "7",
-         "phone": "+79275554477"}
-    }
+                        {"city": "Москва",
+                         "street": "Мира",
+                         "house": "111",
+                         "structure": "А",
+                         "building": "Аа",
+                         "apartment": "7",
+                         "phone": "+79275554477"}
+                    }
     response = requests.post("http://127.0.0.1:8000/contact/", json=json_contact, headers=headers)
     assert response.text == '{"успех":"Контакты сохранены"}'
 
@@ -347,7 +348,7 @@ def test_33_pay_order(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order = json_data['order']
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_product = {"order": order}
     response = requests.post("http://127.0.0.1:8000/sendinvoice/", json=json_product, headers=headers)
     assert response.text == '{"успех":"Накладная отправлена"}'
@@ -359,10 +360,10 @@ def test_34_put_paid_order_pay(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order_item = json_data['order_item'] - 1
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     json_product = {"id": order_item, "quantity": 77}
-#    response = requests.put("http://127.0.0.1:8000/orderitem/", json=json_product, headers=headers)
-#    assert response.text == '{"отказ":"Количество товара изменено"}'
+    #    response = requests.put("http://127.0.0.1:8000/orderitem/", json=json_product, headers=headers)
+    #    assert response.text == '{"отказ":"Количество товара изменено"}'
     response = requests.put("http://127.0.0.1:8000/orderitem/", json=json_product, headers=headers)
     assert response.text == '{"отказ":"Заказ уже оплачен и перемещен из корзины"}'
 
@@ -373,11 +374,12 @@ def test_35_delete_pay_order(buyer1):
         json_data = json.load(file)
     token = json_data['token']
     order_item = json_data['order_item'] - 1
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     response = requests.delete(f"http://127.0.0.1:8000/orderitem/?id={order_item}", headers=headers)
     assert response.text == '{"отказ":"Заказ уже оплачен и перемещен из корзины"}'
 
-### Подтверждение заказа продавцом
+
+### Подтверждение заказа продавцом (изменение статуса заказа)
 def test_36_post_status_order(salesman1, buyer1):
     with open(salesman1, encoding='utf-8') as file:
         json_data = json.load(file)
@@ -386,16 +388,6 @@ def test_36_post_status_order(salesman1, buyer1):
         json_data = json.load(file)
     order = json_data['order']
     json_order = {"order": order, "status": "Подтвержден"}
-    headers={'Authorization': f'Token {token}'}
+    headers = {'Authorization': f'Token {token}'}
     response = requests.post(f"http://localhost:8000/status/", json=json_order, headers=headers)
     assert response.text == '{"успех":"Статус заказа изменен"}'
-
-
-
-
-#            return Response({'отказ': 'Вы не владелец этой информации'})
-#    assert response.text == '{"успех":"Контакт удалён}'
-#            return Response({'отказ': 'Такого оплаченного клиентом заказа у вас нет'})
-#            return Response({'отказ': 'Заказ еще не оплачен'})
-#            return Response({'отказ': 'Попытка перезаписать тот же статус'})
-#            return Response({'отказ': 'На складе нет нужного количества товара'})

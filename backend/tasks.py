@@ -26,6 +26,7 @@ def send_email_task(send_email, content):
     with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as smtp:
         smtp.login('bym001jt@yandex.ru', 'bbwwrfghysnbntah')
         smtp.send_message(msg)
+    return
 
 
 @shared_task()
@@ -39,22 +40,4 @@ def code_email_delete_task(code_id, sec_sleep=0):
         sleep(sec_sleep)
     if MailConfirmationCode.objects.filter(id=code_id).exists():
         MailConfirmationCode.objects.filter(id=code_id).delete()
-
-
-# @shared_task()
-# def send_email_pay_order_task(send_email, content):
-#     '''
-#     Функция отправки почты продавцу о оплаченом заказе
-#     Принемает на вход электронную почту на котоую отправить сообщение и текст сообщения
-#     '''
-#     print('-----------------------------------------------Функция отправки ОРДЕРА')
-#
-#     msg = EmailMessage()
-#     msg['Subject'] = "API shop"
-#     msg['From'] = 'bym001jt@yandex.ru'
-#     msg['To'] = send_email
-#     msg.set_content(content)
-#     with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as smtp:
-#         smtp.login('bym001jt@yandex.ru', 'bbwwrfghysnbntah')
-#         smtp.send_message(msg)
-
+    return

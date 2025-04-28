@@ -195,19 +195,3 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 # бекенд классической аутентификации, чтобы работала авторизация через обычный логин и пароль
 )
-
-# SOCIAL_AUTH_VK_OAUTH2_KEY = '53459367'
-# SOCIAL_AUTH_VK_OAUTH2_SECRET = 'nY43IxiI3xzEOgpyDMX7'
-# LOGIN_REDIRECT_URL = '/'
-# SOCIAL_AUTH_VK_OAUTH2_SCOPE = ['email']
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '665878897636-3mae30468o1c9ej4t4cq9q60d7i74hm3.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
-
-LOGIN_URL = '/auth/login/google-oauth2/'
-
-LOGIN_REDIRECT_URL = 'https://accounts.google.com'
-LOGOUT_REDIRECT_URL = '/'
-
-SOCIAL_AUTH_URL_NAMESPACE = 'social'
-

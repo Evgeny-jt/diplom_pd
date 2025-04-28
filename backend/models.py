@@ -116,8 +116,8 @@ class ProductParameter(models.Model):
 
 class Order(models.Model):
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Покупатель', related_name='buyer')
-    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец', related_name='salesman',
-                                 blank=True, null=True)
+    salesman = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Продавец',
+                                 related_name='salesman', blank=True, null=True)
     dt = models.DateTimeField(auto_now_add=True, verbose_name='дата заказа')
     status = models.CharField(max_length=25, verbose_name='Статус', choices=ORDER_STATUS, default='на подтверждении')
 
@@ -145,10 +145,8 @@ class OrderItem(models.Model):
 
 
 class Contact(models.Model):
-    user = models.ForeignKey(User, verbose_name='Пользователь',
-                             related_name='contacts', blank=True,
+    user = models.ForeignKey(User, verbose_name='Пользователь', related_name='contacts', blank=True,
                              on_delete=models.CASCADE)
-
     city = models.CharField(max_length=50, verbose_name='Город')
     street = models.CharField(max_length=100, verbose_name='Улица')
     house = models.CharField(max_length=15, verbose_name='Дом', blank=True)

@@ -1,7 +1,6 @@
-import random
 import json
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, \
-    MailConfirmationCode
+from .models import User, Shop, ProductInfo, Order, OrderItem
+
 
 def save_token_file(token, name):
     if name == 'salesman1_pytest_api' or name == 'buyer1_pytest_api':
@@ -9,6 +8,7 @@ def save_token_file(token, name):
         with open(f'tests/backend/token_{name}.json', 'w') as f:
             json.dump(dict_json, f)
     return
+
 
 def save_product_info_file(shop, name):
     if str(name) == 'salesman1_pytest_api':
@@ -29,6 +29,7 @@ def save_product_info_file(shop, name):
             json.dump(dict_json, f)
     return
 
+
 def save_order_file(user):
     if str(user) == 'buyer1_pytest_api':
         with open('tests/backend/token_buyer1_pytest_api.json', encoding='utf-8') as file:
@@ -38,11 +39,6 @@ def save_order_file(user):
         order_id = Order.objects.get(buyer=user_id).id
         order_item_id = OrderItem.objects.latest('id').id
         dict_json = {'token': f'{token}', 'order': order_id, 'order_item': order_item_id}
-
-        print('-------', order_item_id)
-
-
         with open(f'tests/backend/token_{str(user)}.json', 'w') as f:
             json.dump(dict_json, f)
     return
-
